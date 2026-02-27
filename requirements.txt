@@ -1,0 +1,13 @@
+ultralytics>=8.0.0
+onnxruntime-gpu>=1.16.0
+opencv-python>=4.8.0
+supervision>=0.16.0
+numpy>=1.24.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+schedule>=1.2.0
+
+# Face recognition: install ONE of these (deepface works on Windows without Build Tools)
+# pip install deepface
+# pip install insightface>=0.7.3
+deepface>=0.0.79

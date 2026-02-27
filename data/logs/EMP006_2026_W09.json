@@ -1,0 +1,11 @@
+{
+  "employee_id": "EMP006",
+  "employee_name": "Dr. Masoud",
+  "year": 2026,
+  "week": 9,
+  "sessions": [],
+  "daily_totals": {
+    "2026-02-26": 0.0
+  },
+  "weekly_total_seconds": 0.0
+}

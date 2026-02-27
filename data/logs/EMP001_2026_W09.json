@@ -1,0 +1,134 @@
+{
+  "employee_id": "EMP001",
+  "employee_name": "Garrett Valentine",
+  "year": 2026,
+  "week": 9,
+  "sessions": [
+    {
+      "event_id": "EVT-20260226-173638-M5OL",
+      "employee_id": "EMP001",
+      "employee_name": "Garrett Valentine",
+      "clock_in": "2026-02-26T17:36:38.089313",
+      "clock_out": null,
+      "duration_seconds": 0.0,
+      "date_str": "2026-02-26",
+      "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260226-173638-NTJM.jpg",
+      "interruptions": [
+        {
+          "lost_at": "2026-02-26T17:36:41.037135",
+          "recovered_at": "2026-02-26T17:37:05.617440",
+          "event_id_lost": "EVT-20260226-173641-Z1O3",
+          "event_id_recovered": "EVT-20260226-173705-UYGB"
+        },
+        {
+          "lost_at": "2026-02-26T17:37:06.788110",
+          "recovered_at": "2026-02-26T17:37:08.440819",
+          "event_id_lost": "EVT-20260226-173706-F4NK",
+          "event_id_recovered": "EVT-20260226-173708-J07K"
+        },
+        {
+          "lost_at": "2026-02-26T17:37:14.770961",
+          "recovered_at": "2026-02-26T17:37:15.116474",
+          "event_id_lost": "EVT-20260226-173714-CDL7",
+          "event_id_recovered": "EVT-20260226-173715-PZ1J"
+        },
+        {
+          "lost_at": "2026-02-26T17:37:15.454025",
+          "recovered_at": "2026-02-26T17:37:15.816908",
+          "event_id_lost": "EVT-20260226-173715-D3JV",
+          "event_id_recovered": "EVT-20260226-173715-HY7E"
+        },
+        {
+          "lost_at": "2026-02-26T17:37:19.536740",
+          "recovered_at": "2026-02-26T17:37:19.808212",
+          "event_id_lost": "EVT-20260226-173719-HCQI",
+          "event_id_recovered": "EVT-20260226-173719-XW6K"
+        },
+        {
+          "lost_at": "2026-02-26T17:37:59.694173",
+          "recovered_at": "2026-02-26T17:38:00.723068",
+          "event_id_lost": "EVT-20260226-173759-MLCN",
+          "event_id_recovered": "EVT-20260226-173800-0JJB"
+        },
+        {
+          "lost_at": "2026-02-26T17:38:14.348150",
+          "recovered_at": "2026-02-26T17:38:14.999873",
+          "event_id_lost": "EVT-20260226-173814-KV45",
+          "event_id_recovered": "EVT-20260226-173814-J4FU"
+        },
+        {
+          "lost_at": "2026-02-26T17:38:20.517541",
+          "recovered_at": "2026-02-26T17:38:41.851965",
+          "event_id_lost": "EVT-20260226-173820-B66F",
+          "event_id_recovered": "EVT-20260226-173841-STWR"
+        },
+        {
+          "lost_at": "2026-02-26T17:38:46.530175",
+          "recovered_at": "2026-02-26T17:39:16.102329",
+          "event_id_lost": "EVT-20260226-173846-KYSM",
+          "event_id_recovered": "EVT-20260226-173916-YSSX"
+        },
+        {
+          "lost_at": "2026-02-26T17:39:22.545372",
+          "recovered_at": "2026-02-26T17:39:34.163212",
+          "event_id_lost": "EVT-20260226-173922-VDB2",
+          "event_id_recovered": "EVT-20260226-173934-7NU7"
+        },
+        {
+          "lost_at": "2026-02-26T17:39:40.061276",
+          "recovered_at": null,
+          "event_id_lost": "EVT-20260226-173940-QFTC",
+          "event_id_recovered": ""
+        }
+      ],
+      "closed": false
+    },
+    {
+      "event_id": "EVT-20260226-185158-SBGL",
+      "employee_id": "EMP001",
+      "employee_name": "Garrett Valentine",
+      "clock_in": "2026-02-26T18:51:58.844866",
+      "clock_out": null,
+      "duration_seconds": 0.0,
+      "date_str": "2026-02-26",
+      "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260226-185158-DRGT.jpg",
+      "interruptions": [],
+      "closed": false
+    },
+    {
+      "event_id": "EVT-20260226-190641-78XR",
+      "employee_id": "EMP001",
+      "employee_name": "Garrett Valentine",
+      "clock_in": "2026-02-26T19:06:41.956306",
+      "clock_out": null,
+      "duration_seconds": 0.0,
+      "date_str": "2026-02-26",
+      "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260226-190641-XAS2.jpg",
+      "interruptions": [
+        {
+          "lost_at": "2026-02-26T19:06:46.667825",
+          "recovered_at": "2026-02-26T19:06:46.879721",
+          "event_id_lost": "EVT-20260226-190646-2GKG",
+          "event_id_recovered": "EVT-20260226-190646-IJIF"
+        },
+        {
+          "lost_at": "2026-02-26T19:06:48.876940",
+          "recovered_at": "2026-02-26T19:06:49.252591",
+          "event_id_lost": "EVT-20260226-190648-EA4B",
+          "event_id_recovered": "EVT-20260226-190649-Q74B"
+        },
+        {
+          "lost_at": "2026-02-26T19:06:58.311511",
+          "recovered_at": "2026-02-26T19:06:59.443263",
+          "event_id_lost": "EVT-20260226-190658-HEB9",
+          "event_id_recovered": "EVT-20260226-190659-QU56"
+        }
+      ],
+      "closed": false
+    }
+  ],
+  "daily_totals": {
+    "2026-02-26": 0.0
+  },
+  "weekly_total_seconds": 0.0
+}

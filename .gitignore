@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.venv/
+env/
+venv/
+ENV/
+
+# Logging
+*.log
+
+# Models & Large Files
+yolov8n.pt
+
+# IDEs
+.vscode/
+.idea/
+.cursor/
+
+# Data (Assuming user wants to keep code and not specific local data)
+data/snapshots/
+attendance/logs/
