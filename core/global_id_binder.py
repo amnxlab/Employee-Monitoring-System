@@ -16,6 +16,7 @@ appearance + position for BINDING_PERSIST_SECONDS (default 2 hours).
 import math
 import time
 import logging
+import threading
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 
@@ -204,6 +205,9 @@ class GlobalIDBinder:
     def __init__(self):
         self._per_cam_binders: Dict[int, IDBinder] = {}
 
+        # Thread lock for shared data structures (main thread + face-rec thread)
+        self._lock = threading.Lock()
+
         # employee_id -> EmployeeBinding (currently active)
         self._employee_bindings: Dict[str, EmployeeBinding] = {}
 
@@ -255,44 +259,45 @@ class GlobalIDBinder:
         """
         now = time.time()
 
-        # Defensive guard: if this track is already bound to a DIFFERENT
-        # employee, refuse the re-bind to prevent identity swaps.
-        existing_emp = self._track_to_employee.get((cam_id, track_id))
-        if existing_emp is not None and existing_emp != employee_id:
-            logger.warning(
-                f"Refusing re-bind: cam {cam_id} track {track_id} is "
-                f"already bound to {existing_emp}, rejecting {employee_id}"
-            )
-            return
-
-        # Remove any previous binding for this employee on another camera
-        old = self._employee_bindings.get(employee_id)
-        if old and (old.cam_id != cam_id or old.track_id != track_id):
-            self._track_to_employee.pop((old.cam_id, old.track_id), None)
-
-        # Compute body descriptor if frame+bbox provided
+        # Compute body descriptor outside the lock (CPU-intensive)
         descriptor = None
         if frame is not None and bbox is not None:
             descriptor = compute_body_descriptor(frame, bbox)
 
-        binding = EmployeeBinding(
-            employee_id=employee_id,
-            cam_id=cam_id,
-            track_id=track_id,
-            descriptor=descriptor,
-            last_seen=now,
-            active=True,
-        )
-        self._employee_bindings[employee_id] = binding
-        self._track_to_employee[(cam_id, track_id)] = employee_id
+        with self._lock:
+            # Defensive guard: if this track is already bound to a DIFFERENT
+            # employee, refuse the re-bind to prevent identity swaps.
+            existing_emp = self._track_to_employee.get((cam_id, track_id))
+            if existing_emp is not None and existing_emp != employee_id:
+                logger.warning(
+                    f"Refusing re-bind: cam {cam_id} track {track_id} is "
+                    f"already bound to {existing_emp}, rejecting {employee_id}"
+                )
+                return
 
-        # Also update the local per-camera binder
-        local = self._per_cam_binders.get(cam_id)
-        if local:
-            local.bind(track_id, employee_id)
+            # Remove any previous binding for this employee on another camera
+            old = self._employee_bindings.get(employee_id)
+            if old and (old.cam_id != cam_id or old.track_id != track_id):
+                self._track_to_employee.pop((old.cam_id, old.track_id), None)
 
-        # Remove from remembered if re-appeared
-        self._remembered.pop(employee_id, None)
+            binding = EmployeeBinding(
+                employee_id=employee_id,
+                cam_id=cam_id,
+                track_id=track_id,
+                descriptor=descriptor,
+                last_seen=now,
+                active=True,
+            )
+            self._employee_bindings[employee_id] = binding
+            self._track_to_employee[(cam_id, track_id)] = employee_id
+
+            # Also update the local per-camera binder
+            local = self._per_cam_binders.get(cam_id)
+            if local:
+                local.bind(track_id, employee_id)
+
+            # Remove from remembered if re-appeared
+            self._remembered.pop(employee_id, None)
 
         logger.debug(
             f"Global bind: {employee_id} -> cam {cam_id} track {track_id}"
@@ -392,27 +397,29 @@ class GlobalIDBinder:
     def mark_lost(self, cam_id: int, track_id: int):
         """Called when a bound track is lost on a specific camera."""
         key = (cam_id, track_id)
-        emp_id = self._track_to_employee.pop(key, None)
-        if emp_id is None:
-            return
+        with self._lock:
+            emp_id = self._track_to_employee.pop(key, None)
+            if emp_id is None:
+                return
 
-        binding = self._employee_bindings.get(emp_id)
-        if binding and binding.cam_id == cam_id and binding.track_id == track_id:
-            binding.active = False
-            # Save to persistent memory for re-ID (up to BINDING_PERSIST_SECONDS)
-            self._remembered[emp_id] = binding
-            logger.debug(
-                f"Employee {emp_id} lost on cam {cam_id}, "
-                f"remembered for {self._persist_seconds}s"
-            )
+            binding = self._employee_bindings.get(emp_id)
+            if binding and binding.cam_id == cam_id and binding.track_id == track_id:
+                binding.active = False
+                # Save to persistent memory for re-ID (up to BINDING_PERSIST_SECONDS)
+                self._remembered[emp_id] = binding
+                logger.debug(
+                    f"Employee {emp_id} lost on cam {cam_id}, "
+                    f"remembered for {self._persist_seconds}s"
+                )
 
     def cleanup_lost_tracks(self, cam_id: int, active_track_ids: List[int]):
         """Remove bindings for tracks no longer active on a camera."""
-        lost_keys = [
-            (c, t)
-            for (c, t) in list(self._track_to_employee.keys())
-            if c == cam_id and t not in active_track_ids
-        ]
+        with self._lock:
+            lost_keys = [
+                (c, t)
+                for (c, t) in list(self._track_to_employee.keys())
+                if c == cam_id and t not in active_track_ids
+            ]
         for key in lost_keys:
             self.mark_lost(*key)
 
@@ -477,15 +484,18 @@ class GlobalIDBinder:
         bbox: Tuple[int, int, int, int],
     ):
         """Refresh the stored descriptor for an active binding (called periodically)."""
-        emp_id = self._track_to_employee.get((cam_id, track_id))
-        if emp_id is None:
-            return
-        binding = self._employee_bindings.get(emp_id)
-        if binding is None:
+        # Compute descriptor outside lock (CPU-intensive)
+        desc = compute_body_descriptor(frame, bbox)
+        if desc.histogram is None:
             return
 
-        desc = compute_body_descriptor(frame, bbox)
-        if desc.histogram is not None:
+        with self._lock:
+            emp_id = self._track_to_employee.get((cam_id, track_id))
+            if emp_id is None:
+                return
+            binding = self._employee_bindings.get(emp_id)
+            if binding is None:
+                return
             binding.descriptor = desc
             binding.last_seen = time.time()
 

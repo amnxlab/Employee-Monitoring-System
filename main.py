@@ -1,5 +1,9 @@
 import sys
 import hashlib
+import os
+import tempfile
+import copy
+import collections
 
 try:
     import cv2
@@ -16,7 +20,7 @@ import logging
 import signal
 import threading
 import queue
-from datetime import datetime
+from datetime import datetime, time as dt_time
 from typing import Dict, List, Tuple, Optional
 
 import numpy as np
@@ -32,6 +36,7 @@ from core import (
     AudioAlertManager,
 )
 from core.snapshot import save_snapshot, cleanup_old_snapshots
+from core.global_id_binder import compute_body_descriptor, compare_descriptors as _cmp_desc
 from attendance import AttendanceStateMachine, AttendanceState, TimerManager, EventLogger
 from integrations import DiscordNotifier
 from utils.helpers import format_duration, get_week_number
@@ -249,11 +254,15 @@ class MonitoringSystem:
         self.running = False
         self.debug_display = True
         self._last_week = get_week_number()
+        self._last_year = datetime.now().year
         self._last_day = datetime.now().strftime("%Y-%m-%d")
+        self._weekly_report_sent = False  # dedup guard for scheduled + reset reports
         # Frame counter for periodic histogram updates (every 60 frames ~ 2s)
         self._hist_update_interval = 60
         # Latest frame per camera (for snapshots on clock-in)
         self._latest_frames: Dict[int, np.ndarray] = {}
+        # Rolling FPS counter (smooth over last 60 frame timestamps)
+        self._fps_timestamps: collections.deque = collections.deque(maxlen=60)
         # Unknown person tracker: {(cam_id, track_id): {first_seen, first_snap, alerted}}
         self._unknown_tracker: Dict[tuple, dict] = {}
         self._unknown_grace_seconds = getattr(config, 'UNKNOWN_GRACE_SECONDS', 300)  # 5 min
@@ -335,13 +344,22 @@ class MonitoringSystem:
 
         if transition.to_state == AttendanceState.CLOCKED_IN:
             if transition.from_state in [AttendanceState.DETECTED, AttendanceState.OUT]:
-                # New session: clock-in + snapshot
+                # New session: clock-in first (to get event_id), then snapshot
                 self.timer_manager.clock_in(emp_id, transition.timestamp)
-                snap_path = self._take_clock_in_snapshot(emp_id)
                 event_id = self.event_logger.log_clock_in(
-                    emp_id, name, snapshot_path=snap_path, timestamp=timestamp
+                    emp_id, name, snapshot_path=None, timestamp=timestamp
                 )
-                is_late = timestamp.hour >= getattr(config, 'EXPECTED_START_HOUR', 9) + 1
+                # Now take snapshot with the real event_id so filename matches
+                snap_path = self._take_clock_in_snapshot(emp_id, event_id)
+                if snap_path:
+                    # Update the session's snapshot_path
+                    self.event_logger.update_snapshot_path(emp_id, event_id, snap_path)
+
+                start_hour = getattr(config, 'EXPECTED_START_HOUR', 9)
+                start_minute = getattr(config, 'EXPECTED_START_MINUTE', 0)
+                expected_start = dt_time(start_hour, start_minute)
+                is_late = timestamp.time() > expected_start
+
                 self.discord.send_clock_in(
                     name, timestamp, snapshot_path=snap_path, is_late=is_late
                 )
@@ -364,8 +382,12 @@ class MonitoringSystem:
             logger.info(f"{name} temporarily lost")
 
         elif transition.to_state == AttendanceState.CLOCKED_OUT:
-            duration = self.timer_manager.get_current_session(emp_id, transition.timestamp)
-            deduct = config.TEMP_LOST_TIMEOUT_SECONDS if transition.from_state == AttendanceState.TEMP_LOST else 0
+            # Get the state machine's computed total_lost_seconds for deduction
+            sm = self.state_machines.get(emp_id)
+            total_lost = sm.state.total_lost_seconds if sm else 0.0
+            deduct = total_lost
+            if transition.from_state == AttendanceState.TEMP_LOST:
+                deduct += config.TEMP_LOST_TIMEOUT_SECONDS
             self.timer_manager.clock_out(emp_id, transition.timestamp, deduct)
             final_duration = self.timer_manager.get_last_session_duration(emp_id)
             parent = self.event_logger.get_active_event_id(emp_id)
@@ -380,7 +402,7 @@ class MonitoringSystem:
             # Audio: farewell
             self.audio_alert.play_clock_out(name, is_early=is_early)
 
-    def _take_clock_in_snapshot(self, emp_id: str) -> Optional[str]:
+    def _take_clock_in_snapshot(self, emp_id: str, event_id: str = None) -> Optional[str]:
         """Capture a snapshot from the camera where the employee was detected."""
         # Find which camera the employee is bound to
         binding = self.global_binder._employee_bindings.get(emp_id)
@@ -389,9 +411,9 @@ class MonitoringSystem:
         frame = self._latest_frames.get(binding.cam_id)
         if frame is None:
             return None
-        # Generate a temporary event ID for filename (will be replaced by real one)
-        from attendance.event_logger import _generate_event_id
-        event_id = _generate_event_id()
+        if event_id is None:
+            from attendance.event_logger import _generate_event_id
+            event_id = _generate_event_id()
         return save_snapshot(frame, event_id, person_bbox=None)
 
     # ── reports and daily summary ──────────────────────────────────────
@@ -408,8 +430,9 @@ class MonitoringSystem:
         lines = [f"Daily Summary for {today}", "-" * 30]
         for emp_id in employee_ids:
             name = self.face_recognizer.get_employee_name(emp_id)
-            daily_secs = self.timer_manager.get_daily_total(emp_id)
-            self.event_logger.log_daily_summary(emp_id, name, daily_secs, today)
+            # Use EventLogger as single source of truth (derives from closed sessions)
+            self.event_logger.log_daily_summary(emp_id, name, daily_seconds=None, day=today)
+            daily_secs = self.event_logger.get_daily_total(emp_id, today)
             hours = daily_secs / 3600
             lines.append(f"  {name}: {hours:.1f} hrs")
             # Overtime check
@@ -417,13 +440,15 @@ class MonitoringSystem:
                 overtime = (daily_secs - config.DAILY_OVERTIME_THRESHOLD) / 3600
                 lines.append(f"    ** OVERTIME: +{overtime:.1f} hrs **")
         report = "\n".join(lines)
-        self.discord.send_message(report) if hasattr(self.discord, 'send_message') else None
+        self.discord.send_daily_summary(report, today)
         logger.info(f"Daily summary sent for {today}")
 
         # Auto-prune snapshots older than 30 days
         cleanup_old_snapshots(max_age_days=30)
 
     def _send_weekly_report(self):
+        if self._weekly_report_sent:
+            return  # Already sent for this week transition
         weekly_totals = self.timer_manager.get_all_weekly_totals()
         employee_names = {
             emp_id: self.face_recognizer.get_employee_name(emp_id)
@@ -433,17 +458,35 @@ class MonitoringSystem:
             list(weekly_totals.keys()), employee_names
         )
         self.discord.send_weekly_summary(weekly_totals, employee_names)
+        self._weekly_report_sent = True
         logger.info("Weekly report sent")
 
     def _check_weekly_reset(self):
         current_week = get_week_number()
-        if current_week != self._last_week:
-            logger.info(f"New week detected: {self._last_week} -> {current_week}")
+        current_year = datetime.now().year
+        if current_week != self._last_week or current_year != self._last_year:
+            logger.info(f"New week detected: {self._last_year}-W{self._last_week} -> {current_year}-W{current_week}")
             self._send_weekly_report()
             self.timer_manager.reset_weekly()
             self._last_week = current_week
+            self._last_year = current_year
+            self._weekly_report_sent = False  # allow next week's report
 
     # ── main loop ──────────────────────────────────────────────────────
+
+    def _start_schedule_thread(self):
+        """Run schedule.run_pending() in a background thread to avoid blocking the camera loop."""
+        def _schedule_loop():
+            while self.running:
+                try:
+                    schedule.run_pending()
+                    self._check_weekly_reset()
+                except Exception as e:
+                    logger.error(f"Schedule thread error: {e}")
+                time.sleep(1.0)  # check every second
+        t = threading.Thread(target=_schedule_loop, daemon=True, name="schedule")
+        t.start()
+        logger.info("Schedule background thread started")
 
     def run(self):
         """Main processing loop – processes all cameras each iteration."""
@@ -451,8 +494,9 @@ class MonitoringSystem:
         self.discord.send_system_start()
         logger.info("Starting multi-camera main loop...")
 
-        frame_count = 0
-        fps_start_time = time.time()
+        # Start schedule on a background thread so Discord timeouts don't stall cameras
+        self._start_schedule_thread()
+
         fps = 0.0
         global_loop = 0
         # Cap main loop at 30 iterations/sec – YOLO only runs every
@@ -463,8 +507,6 @@ class MonitoringSystem:
         try:
             while self.running:
                 loop_start = time.perf_counter()
-                schedule.run_pending()
-                self._check_weekly_reset()
 
                 current_time = time.time()
                 frames = self.camera_manager.get_latest_frames()
@@ -578,8 +620,6 @@ class MonitoringSystem:
                 # Unknown person: 5-minute grace period with first+last snapshot
                 # Cross-camera dedup: if the same physical person is visible on
                 # two cameras, we treat it as ONE unknown person, not two.
-                import tempfile, os
-                from core.global_id_binder import compute_body_descriptor, compare_descriptors as _cmp_desc
                 active_unknown_keys = set()
                 for cam_id in self.pipelines:
                     cam_tracks = display_data.get(cam_id, {}).get('tracks', [])
@@ -614,8 +654,8 @@ class MonitoringSystem:
 
                             if _matched_existing is not None:
                                 # Same person already tracked on another cam — link this key
-                                # to the existing entry so it shares the same first_seen / alert.
-                                self._unknown_tracker[key] = self._unknown_tracker[_matched_existing]
+                                # to a COPY so they don't share the same mutable dict.
+                                self._unknown_tracker[key] = copy.copy(self._unknown_tracker[_matched_existing])
                                 active_unknown_keys.add(_matched_existing)
                                 logger.debug(
                                     f"Unknown dedup: cam {cam_id} track {track.track_id} "
@@ -688,14 +728,13 @@ class MonitoringSystem:
                         except OSError:
                             pass
 
-                # ── FPS ──
-                frame_count += 1
+                # ── FPS (rolling average) ──
                 global_loop += 1
-                if frame_count % 30 == 0:
-                    elapsed = time.time() - fps_start_time
-                    fps = frame_count / elapsed if elapsed > 0 else 0
-                    frame_count = 0
-                    fps_start_time = time.time()
+                now_ts = time.time()
+                self._fps_timestamps.append(now_ts)
+                if len(self._fps_timestamps) >= 2:
+                    span = self._fps_timestamps[-1] - self._fps_timestamps[0]
+                    fps = (len(self._fps_timestamps) - 1) / span if span > 0 else 0.0
 
                 # ── debug display ──
                 if self.debug_display and display_data:
@@ -771,7 +810,10 @@ class MonitoringSystem:
                 color = (0, 255, 0)
             elif sm.current_state == AttendanceState.TEMP_LOST:
                 remaining = sm.get_temp_lost_remaining()
-                status = f"{name}: {state} ({remaining:.0f}s remaining)"
+                if remaining is not None:
+                    status = f"{name}: {state} ({remaining:.0f}s remaining)"
+                else:
+                    status = f"{name}: {state} (counting...)"
                 color = (0, 165, 255)
             else:
                 status = f"{name}: {state}"

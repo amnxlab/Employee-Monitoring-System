@@ -22,6 +22,7 @@ class EmployeeTime:
     
     last_update: float = field(default_factory=time.time)
     week_number: int = field(default_factory=lambda: get_week_number())
+    week_year: int = field(default_factory=lambda: datetime.now().year)
 
 
 class TimerManager:
@@ -135,14 +136,16 @@ class TimerManager:
     def _check_weekly_reset(self, emp_time: EmployeeTime):
         """Check and perform weekly reset if needed."""
         current_week = get_week_number()
+        current_year = datetime.now().year
         
-        if emp_time.week_number != current_week:
+        if emp_time.week_number != current_week or emp_time.week_year != current_year:
             logger.info(
                 f"Weekly reset for {emp_time.employee_id}: "
-                f"week {emp_time.week_number} -> {current_week}"
+                f"{emp_time.week_year}-W{emp_time.week_number} -> {current_year}-W{current_week}"
             )
             emp_time.weekly_seconds = 0.0
             emp_time.week_number = current_week
+            emp_time.week_year = current_year
     
     def reset_daily(self, employee_id: str = None):
         """Reset daily totals for one or all employees."""
@@ -161,11 +164,14 @@ class TimerManager:
             if employee_id in self.employees:
                 self.employees[employee_id].weekly_seconds = 0.0
                 self.employees[employee_id].week_number = get_week_number()
+                self.employees[employee_id].week_year = datetime.now().year
         else:
             current_week = get_week_number()
+            current_year = datetime.now().year
             for emp_time in self.employees.values():
                 emp_time.weekly_seconds = 0.0
                 emp_time.week_number = current_week
+                emp_time.week_year = current_year
         
         logger.info(f"Weekly reset: {employee_id or 'all employees'}")
     

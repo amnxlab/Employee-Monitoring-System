@@ -98,7 +98,8 @@ def save_snapshot(
         cv2.imwrite(str(filepath), img, [cv2.IMWRITE_JPEG_QUALITY, 75])
         logger.info(f"Snapshot saved: {filepath}")
 
-        return str(filepath)
+        # Always return the filename only (relative) for portability
+        return filename
 
     except Exception as e:
         logger.error(f"Failed to save snapshot: {e}")

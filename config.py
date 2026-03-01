@@ -37,6 +37,7 @@ BINDING_IOU_THRESHOLD = 0.1  # lower threshold - face bbox is smaller than body 
 # State Machine
 TEMP_LOST_TIMEOUT_SECONDS = 1800  # 30 minutes - if not seen for 30 min, auto clock-out
 DEBOUNCE_FRAMES = 3
+DEBOUNCE_SECONDS = 0.5  # time-based debounce (preferred over frame-based)
 
 # Camera (no PTZ/movement control)
 CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", 0))
@@ -87,6 +88,7 @@ MANAGER_PASSWORD_HASH = os.getenv(
 
 # Work-hours expectations (for late/early alerts)
 EXPECTED_START_HOUR = int(os.getenv("EXPECTED_START_HOUR", 9))   # 09:00
+EXPECTED_START_MINUTE = int(os.getenv("EXPECTED_START_MINUTE", 0))  # :00
 EXPECTED_END_HOUR = int(os.getenv("EXPECTED_END_HOUR", 17))     # 17:00
 DAILY_OVERTIME_THRESHOLD = 8 * 3600    # 8 hours in seconds
 WEEKLY_OVERTIME_THRESHOLD = 40 * 3600  # 40 hours in seconds

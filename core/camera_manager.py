@@ -36,6 +36,11 @@ class _CameraThread:
         # Throttle reads to the camera's FPS to avoid busy-spinning
         cam_fps = getattr(config, "CAMERA_FPS", 30)
         self._frame_interval = 1.0 / max(cam_fps, 1)
+        # Reconnection state
+        self._consecutive_failures = 0
+        self._max_failures_before_reconnect = 90  # ~3 seconds at 30fps
+        self._reconnect_backoff = 1.0  # initial backoff in seconds
+        self._max_reconnect_backoff = 30.0
 
     # ── lifecycle ──────────────────────────────────────────────────────
 
@@ -61,14 +66,36 @@ class _CameraThread:
     # ── internal ───────────────────────────────────────────────────────
 
     def _read_loop(self):
+        backoff = self._reconnect_backoff
         while self._running:
             t0 = time.perf_counter()
             frame = self.camera.read()
             if frame is not None:
                 with self._lock:
                     self._latest_frame = frame
+                self._consecutive_failures = 0
+                backoff = self._reconnect_backoff  # reset backoff on success
             else:
-                time.sleep(0.03)  # back off on read failure
+                self._consecutive_failures += 1
+                if self._consecutive_failures >= self._max_failures_before_reconnect:
+                    logger.warning(
+                        f"Camera {self.cam_id}: {self._consecutive_failures} consecutive "
+                        f"read failures, attempting reconnection (backoff={backoff:.1f}s)..."
+                    )
+                    time.sleep(backoff)
+                    backoff = min(backoff * 2, self._max_reconnect_backoff)
+                    try:
+                        self.camera.release()
+                        if self.camera.initialize():
+                            logger.info(f"Camera {self.cam_id}: reconnected successfully")
+                            self._consecutive_failures = 0
+                            backoff = self._reconnect_backoff
+                        else:
+                            logger.error(f"Camera {self.cam_id}: reconnection failed")
+                    except Exception as e:
+                        logger.error(f"Camera {self.cam_id}: reconnection error: {e}")
+                else:
+                    time.sleep(0.03)  # back off on read failure
                 continue
             # Sleep for the remainder of the frame interval
             elapsed = time.perf_counter() - t0

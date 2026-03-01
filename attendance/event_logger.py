@@ -135,6 +135,72 @@ class EventLogger:
         # emp_id -> current open session event_id
         self._active_sessions: Dict[str, str] = {}
 
+        # Recover orphaned sessions from previous runs
+        self._recover_orphaned_sessions()
+
+    # ── orphaned session recovery ──────────────────────────────────────
+
+    def _recover_orphaned_sessions(self):
+        """Scan existing JSON logs and close orphaned (unclosed) sessions.
+
+        On startup, any session with ``closed == False`` from a previous run
+        can never be closed because the in-memory ``_active_sessions`` mapping
+        was lost.  This method:
+        1. Restores still-current-week sessions into ``_active_sessions``.
+        2. Force-closes sessions from older weeks with a recovery note.
+        """
+        now = datetime.now()
+        current_year = now.year
+        current_week = get_week_number(now)
+        recovered = 0
+        closed = 0
+
+        for path in self.logs_dir.glob("*.json"):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                wl = WeeklyLog.from_dict(data)
+            except Exception:
+                continue
+
+            changed = False
+            for session in wl.sessions:
+                if session.closed:
+                    continue
+
+                is_current_week = (wl.year == current_year and wl.week == current_week)
+
+                if is_current_week:
+                    # Restore into active sessions so a future clock-out can close it
+                    self._active_sessions[session.employee_id] = session.event_id
+                    recovered += 1
+                else:
+                    # Old week — force-close with the last known timestamp
+                    last_ts = session.clock_in  # fallback
+                    if session.interruptions:
+                        last_intr = session.interruptions[-1]
+                        last_ts = last_intr.recovered_at or last_intr.lost_at or last_ts
+                    session.clock_out = last_ts
+                    session.closed = True
+                    session.duration_seconds = 0.0  # unknown — mark as 0
+                    # Close any open interruptions
+                    for intr in session.interruptions:
+                        if intr.recovered_at is None:
+                            intr.recovered_at = last_ts
+                    changed = True
+                    closed += 1
+
+            if changed:
+                key = (wl.employee_id, wl.year, wl.week)
+                self._cache[key] = wl
+                self._save(wl)
+
+        if recovered or closed:
+            logger.info(
+                f"Session recovery: {recovered} restored to active, "
+                f"{closed} force-closed from old weeks"
+            )
+
     # ── file I/O ───────────────────────────────────────────────────────
 
     def _log_path(self, employee_id: str, year: int, week: int) -> Path:
@@ -172,18 +238,31 @@ class EventLogger:
         return wl
 
     def _save(self, wl: WeeklyLog):
+        """Atomic write: write to temp file then rename to prevent corruption."""
         path = self._log_path(wl.employee_id, wl.year, wl.week)
+        tmp_path = path.with_suffix(".tmp")
         try:
-            with open(path, "w", encoding="utf-8") as f:
+            with open(tmp_path, "w", encoding="utf-8") as f:
                 json.dump(wl.to_dict(), f, indent=2, ensure_ascii=False)
+            # Atomic rename (on Windows, os.replace is atomic for same volume)
+            os.replace(str(tmp_path), str(path))
         except Exception as e:
             logger.error(f"Failed to save log {path}: {e}")
+            # Cleanup temp file on failure
+            try:
+                tmp_path.unlink(missing_ok=True)
+            except Exception:
+                pass
 
     def _current_wl(self, employee_id: str, name: str = "") -> WeeklyLog:
         now = datetime.now()
         wl = self._load(employee_id, now.year, get_week_number(now))
         if name:
             wl.employee_name = name
+            # Also update name in any open (unclosed) sessions to keep consistency
+            for session in wl.sessions:
+                if not session.closed and session.employee_id == employee_id:
+                    session.employee_name = name
         return wl
 
     def _find_session(self, wl: WeeklyLog, event_id: str) -> Optional[Session]:
@@ -227,6 +306,14 @@ class EventLogger:
 
         logger.info(f"[{event_id}] CLOCK_IN {employee_name} ({employee_id})")
         return event_id
+
+    def update_snapshot_path(self, employee_id: str, event_id: str, snapshot_path: str):
+        """Update the snapshot path for an existing session (after snapshot is saved)."""
+        wl = self._current_wl(employee_id)
+        session = self._find_session(wl, event_id)
+        if session:
+            session.snapshot_path = snapshot_path
+            self._save(wl)
 
     def log_temp_lost(
         self,
@@ -336,13 +423,27 @@ class EventLogger:
         self,
         employee_id: str,
         employee_name: str,
-        daily_seconds: float,
+        daily_seconds: float = None,
         day: str = None,
     ):
-        """Update the daily total in the weekly log."""
+        """Reconcile & persist the daily total in the weekly log.
+
+        If *daily_seconds* is ``None``, the total is computed from closed
+        sessions for that day (single source of truth).  Otherwise the
+        value is accepted as an override.
+        """
         if day is None:
             day = datetime.now().strftime("%Y-%m-%d")
         wl = self._current_wl(employee_id, employee_name)
+
+        if daily_seconds is None:
+            # Derive from closed session data — authoritative
+            daily_seconds = sum(
+                s.duration_seconds
+                for s in wl.sessions
+                if s.date_str == day and s.closed
+            )
+
         wl.daily_totals[day] = daily_seconds
         wl.weekly_total_seconds = sum(wl.daily_totals.values())
         self._save(wl)

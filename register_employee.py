@@ -307,7 +307,7 @@ Keys:
         print("  python -m pip install deepface tf-keras")
         return 1
     
-    camera = Camera(camera_index=args.camera, ptz_enabled=False)
+    camera = Camera(camera_index=args.camera)
     if not camera.initialize():
         logger.error("Failed to initialize camera")
         return 1

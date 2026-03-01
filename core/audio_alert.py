@@ -312,7 +312,7 @@ class AudioAlertManager:
         msg = random.choice(MESSAGES["look_at_camera"])
         self._alert_async(msg, "look_at_camera")
 
-    def play_clock_in(self, name: str, is_late: bool = False):
+    def play_clock_in(self, name: str, is_late: bool = False, employee_id: str = None):
         """Trigger when an employee clocks in."""
         if not self._enabled:
             return
@@ -322,9 +322,10 @@ class AudioAlertManager:
         else:
             msg = random.choice(MESSAGES["clock_in"]).format(name=name)
             self._alert_async(msg, "clock_in")
-        # Reset tracking state
-        self._overtime_warned.pop(name, None)
-        self._last_break_reminder.pop(name, None)
+        # Reset tracking state using employee_id (falls back to name)
+        key = employee_id or name
+        self._overtime_warned.pop(key, None)
+        self._last_break_reminder.pop(key, None)
 
     def play_clock_out(self, name: str, is_early: bool = False):
         """Trigger when an employee clocks out."""
@@ -344,25 +345,27 @@ class AudioAlertManager:
         msg = random.choice(MESSAGES["recovered"]).format(name=name)
         self._alert_async(msg, "recovered")
 
-    def play_overtime(self, name: str):
+    def play_overtime(self, name: str, employee_id: str = None):
         """Trigger when an employee exceeds 8 hours."""
         if not self._enabled:
             return
-        if self._overtime_warned.get(name):
+        key = employee_id or name
+        if self._overtime_warned.get(key):
             return  # only warn once per session
-        self._overtime_warned[name] = True
+        self._overtime_warned[key] = True
         msg = random.choice(MESSAGES["overtime"]).format(name=name)
         self._alert_async(msg, "overtime")
 
-    def play_break_reminder(self, name: str):
+    def play_break_reminder(self, name: str, employee_id: str = None):
         """Trigger when an employee has been working 3+ hours without a break."""
         if not self._enabled:
             return
+        key = employee_id or name
         now = time.time()
-        last = self._last_break_reminder.get(name, 0)
+        last = self._last_break_reminder.get(key, 0)
         if now - last < 3600:  # at most once per hour
             return
-        self._last_break_reminder[name] = now
+        self._last_break_reminder[key] = now
         msg = random.choice(MESSAGES["break_reminder"]).format(name=name)
         self._alert_async(msg, "break_reminder")
 

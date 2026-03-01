@@ -379,8 +379,12 @@ class FaceRecognizer:
     @staticmethod
     def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
         """Calculate cosine similarity between two embeddings."""
-        a_norm = a / np.linalg.norm(a)
-        b_norm = b / np.linalg.norm(b)
+        norm_a = np.linalg.norm(a)
+        norm_b = np.linalg.norm(b)
+        if norm_a == 0 or norm_b == 0:
+            return 0.0
+        a_norm = a / norm_a
+        b_norm = b / norm_b
         return float(np.dot(a_norm, b_norm))
     
     @property

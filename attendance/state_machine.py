@@ -38,7 +38,13 @@ class AttendanceStateMachineState:
     visible_frame_count: int = 0
     invisible_frame_count: int = 0
     
+    # Timestamps for time-based debounce
+    first_visible_time: Optional[float] = None
+    first_invisible_time: Optional[float] = None
+    
     session_seconds: float = 0.0
+    # Cumulative seconds spent in TEMP_LOST across all intervals in this session
+    total_lost_seconds: float = 0.0
     
     just_clocked_in: bool = False
     just_clocked_out: bool = False
@@ -63,11 +69,14 @@ class AttendanceStateMachine:
         self,
         employee_id: str,
         temp_lost_timeout: float = None,
-        debounce_frames: int = None
+        debounce_frames: int = None,
+        debounce_seconds: float = None,
     ):
         self.employee_id = employee_id
         self.temp_lost_timeout = temp_lost_timeout or config.TEMP_LOST_TIMEOUT_SECONDS
         self.debounce_frames = debounce_frames or config.DEBOUNCE_FRAMES
+        # Time-based debounce (preferred over frame-based)
+        self.debounce_seconds = debounce_seconds or getattr(config, 'DEBOUNCE_SECONDS', 0.5)
         
         self.state = AttendanceStateMachineState()
         self._transition_callbacks: list = []
@@ -93,9 +102,16 @@ class AttendanceStateMachine:
         if is_visible:
             self.state.visible_frame_count += 1
             self.state.invisible_frame_count = 0
+            # Track time-based debounce
+            if self.state.first_visible_time is None:
+                self.state.first_visible_time = current_time
+            self.state.first_invisible_time = None
         else:
             self.state.invisible_frame_count += 1
             self.state.visible_frame_count = 0
+            if self.state.first_invisible_time is None:
+                self.state.first_invisible_time = current_time
+            self.state.first_visible_time = None
         
         transition = None
         current = self.state.current_state
@@ -120,9 +136,21 @@ class AttendanceStateMachine:
         
         return transition
     
+    def _is_visible_debounced(self, current_time: float) -> bool:
+        """Check if visibility has been sustained past the debounce threshold."""
+        if self.state.first_visible_time is None:
+            return False
+        return (current_time - self.state.first_visible_time) >= self.debounce_seconds
+
+    def _is_invisible_debounced(self, current_time: float) -> bool:
+        """Check if invisibility has been sustained past the debounce threshold."""
+        if self.state.first_invisible_time is None:
+            return False
+        return (current_time - self.state.first_invisible_time) >= self.debounce_seconds
+
     def _handle_out_state(self, is_visible: bool, current_time: float) -> Optional[StateTransition]:
         """Handle OUT state transitions."""
-        if is_visible and self.state.visible_frame_count >= self.debounce_frames:
+        if is_visible and self._is_visible_debounced(current_time):
             return self._transition_to(AttendanceState.DETECTED, current_time)
         return None
     
@@ -136,7 +164,7 @@ class AttendanceStateMachine:
     
     def _handle_clocked_in_state(self, is_visible: bool, current_time: float) -> Optional[StateTransition]:
         """Handle CLOCKED_IN state transitions."""
-        if not is_visible and self.state.invisible_frame_count >= self.debounce_frames:
+        if not is_visible and self._is_invisible_debounced(current_time):
             self.state.temp_lost_time = current_time
             self.state.just_temp_lost = True
             return self._transition_to(AttendanceState.TEMP_LOST, current_time)
@@ -144,7 +172,10 @@ class AttendanceStateMachine:
     
     def _handle_temp_lost_state(self, is_visible: bool, current_time: float) -> Optional[StateTransition]:
         """Handle TEMP_LOST state transitions."""
-        if is_visible and self.state.visible_frame_count >= self.debounce_frames:
+        if is_visible and self._is_visible_debounced(current_time):
+            # Accumulate this TEMP_LOST interval before recovering
+            if self.state.temp_lost_time is not None:
+                self.state.total_lost_seconds += (current_time - self.state.temp_lost_time)
             self.state.temp_lost_time = None
             return self._transition_to(AttendanceState.CLOCKED_IN, current_time)
         
@@ -154,8 +185,11 @@ class AttendanceStateMachine:
                 self.state.clock_out_time = current_time
                 
                 if self.state.clock_in_time:
-                    self.state.session_seconds = (
-                        current_time - self.state.clock_in_time - self.temp_lost_timeout
+                    # Deduct ALL lost time: previous intervals + this timeout
+                    total_deduction = self.state.total_lost_seconds + self.temp_lost_timeout
+                    self.state.session_seconds = max(
+                        0.0,
+                        current_time - self.state.clock_in_time - total_deduction
                     )
                 
                 self.state.just_clocked_out = True
@@ -167,7 +201,7 @@ class AttendanceStateMachine:
     
     def _handle_clocked_out_state(self, is_visible: bool, current_time: float) -> Optional[StateTransition]:
         """Handle CLOCKED_OUT state transitions."""
-        if is_visible and self.state.visible_frame_count >= self.debounce_frames:
+        if is_visible and self._is_visible_debounced(current_time):
             return self._transition_to(AttendanceState.DETECTED, current_time)
         return None
     
@@ -205,8 +239,8 @@ class AttendanceStateMachine:
         """
         Get current session duration in seconds.
         
-        For CLOCKED_IN state, returns time since clock-in.
-        For TEMP_LOST state, returns time since clock-in minus lost time.
+        For CLOCKED_IN state, returns time since clock-in minus accumulated lost time.
+        For TEMP_LOST state, returns time up to when tracking was lost minus accumulated lost time.
         For CLOCKED_OUT state, returns final session duration.
         """
         if current_time is None:
@@ -214,11 +248,11 @@ class AttendanceStateMachine:
         
         if self.state.current_state == AttendanceState.CLOCKED_IN:
             if self.state.clock_in_time:
-                return current_time - self.state.clock_in_time
+                return current_time - self.state.clock_in_time - self.state.total_lost_seconds
         
         elif self.state.current_state == AttendanceState.TEMP_LOST:
             if self.state.clock_in_time and self.state.temp_lost_time:
-                return self.state.temp_lost_time - self.state.clock_in_time
+                return self.state.temp_lost_time - self.state.clock_in_time - self.state.total_lost_seconds
         
         elif self.state.current_state == AttendanceState.CLOCKED_OUT:
             return self.state.session_seconds
@@ -240,7 +274,7 @@ class AttendanceStateMachine:
         return None
     
     def force_clock_out(self, current_time: float = None):
-        """Force clock out (e.g., end of day)."""
+        """Force clock out (e.g., end of day, system shutdown)."""
         if current_time is None:
             current_time = time.time()
         
@@ -249,12 +283,23 @@ class AttendanceStateMachine:
             
             if self.state.clock_in_time:
                 if self.state.current_state == AttendanceState.TEMP_LOST and self.state.temp_lost_time:
-                    self.state.session_seconds = self.state.temp_lost_time - self.state.clock_in_time
+                    # Include current TEMP_LOST interval in total lost time
+                    current_lost = current_time - self.state.temp_lost_time
+                    total_deduction = self.state.total_lost_seconds + current_lost
+                    self.state.session_seconds = max(
+                        0.0,
+                        current_time - self.state.clock_in_time - total_deduction
+                    )
                 else:
-                    self.state.session_seconds = current_time - self.state.clock_in_time
+                    self.state.session_seconds = max(
+                        0.0,
+                        current_time - self.state.clock_in_time - self.state.total_lost_seconds
+                    )
             
             self.state.just_clocked_out = True
-            self._transition_to(AttendanceState.CLOCKED_OUT, current_time)
+            transition = self._transition_to(AttendanceState.CLOCKED_OUT, current_time)
+            # Fire callbacks so clock-out is logged, timer stopped, Discord notified
+            self._notify_transition(transition)
     
     def reset(self):
         """Reset state machine to initial state."""

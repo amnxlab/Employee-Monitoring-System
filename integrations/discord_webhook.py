@@ -12,7 +12,7 @@ configured, all events are sent there.
 
 import logging
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -145,7 +145,7 @@ class DiscordNotifier:
             e["footer"] = {"text": footer}
         if thumbnail_url:
             e["thumbnail"] = {"url": thumbnail_url}
-        e["timestamp"] = datetime.utcnow().isoformat()
+        e["timestamp"] = datetime.now(timezone.utc).isoformat()
         return e
 
     @staticmethod
@@ -318,11 +318,29 @@ class DiscordNotifier:
         return True
 
     def send_temp_lost(self, name: str) -> bool:
-        # Not sent to Big Brother — only clock in/out go there
+        """Send TEMP_LOST notification to #here-gone."""
+        desc = f"{random.choice(self._LOST_MSGS)}"
+        self._send(
+            CH_HERE_GONE,
+            embed=self._embed(
+                f"\U0001f440 {name} vanished",
+                desc,
+                config.DISCORD_COLOR_ORANGE,
+            ),
+        )
         return True
 
     def send_recovered(self, name: str) -> bool:
-        # Not sent to Big Brother — only clock in/out go there
+        """Send RECOVERED notification to #here-gone."""
+        desc = f"{random.choice(self._RECOVERED_MSGS)}"
+        self._send(
+            CH_HERE_GONE,
+            embed=self._embed(
+                f"\U0001f7e2 {name} is back",
+                desc,
+                config.DISCORD_COLOR_GREEN,
+            ),
+        )
         return True
 
     # ═══════════════════════════════════════════════════════════════════
