@@ -5,7 +5,7 @@
 - **Anomaly Detection** — Flag unusual patterns: low hours, odd clock-in times, statistical threshold alerts
 - **Zone-based Tracking** — Define polygon ROIs (lab bench, office, kitchen); track *where* each person spends time
 - **Auto-enrollment** — Unknown face appears 5+ times → Discord prompt with snapshot: "Add this person?"
-- **Mobile Notifications** — Telegram bot or Firebase push: clock-in/out alerts on your phone
+- **Mobile Notifications** — Discord bot or Firebase push: clock-in/out alerts on your phone
 
 ## Analytics & Reporting
 - **Heatmap Generation** — Spatial heatmaps showing where people spend most time in frame
