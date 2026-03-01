@@ -149,13 +149,40 @@ class _FaceRecWorker:
                 faces = self._recognizer.detect_faces(frame)
                 matches = self._recognizer.identify_all(faces)
 
+                # Build set of employee IDs already actively bound on ANY
+                # camera so we never re-bind them (prevents identity swaps
+                # when two people are near each other).
+                already_bound = set(self._binder.get_visible_employees())
+
+                # Also track which track_ids we assign in THIS batch to
+                # prevent two faces from claiming the same track.
+                claimed_tracks: set = set()
+
                 # Bind matched faces through the global binder
                 for face_idx, employee_id in matches.items():
+                    # Skip employees already bound to an active track
+                    if employee_id in already_bound:
+                        logger.debug(
+                            f"[FACE-SKIP] {employee_id} already bound, "
+                            f"skipping re-bind on cam {cam_id}"
+                        )
+                        continue
+
                     face = faces[face_idx]
                     # Find overlapping track using local binder logic
                     local = self._binder.get_local_binder(cam_id)
                     track_id = local.find_overlapping_track(face.bbox, all_tracks)
                     if track_id is not None:
+                        # Prevent two different employees from claiming
+                        # the same track in one recognition pass
+                        if track_id in claimed_tracks:
+                            logger.debug(
+                                f"[FACE-SKIP] track {track_id} already "
+                                f"claimed this pass, skipping {employee_id}"
+                            )
+                            continue
+                        claimed_tracks.add(track_id)
+
                         # Find the Track object for bbox
                         track_obj = next(
                             (t for t in all_tracks if t.track_id == track_id), None
@@ -230,6 +257,8 @@ class MonitoringSystem:
         # Unknown person tracker: {(cam_id, track_id): {first_seen, first_snap, alerted}}
         self._unknown_tracker: Dict[tuple, dict] = {}
         self._unknown_grace_seconds = getattr(config, 'UNKNOWN_GRACE_SECONDS', 300)  # 5 min
+        # Round-robin counter: which camera submits to face-rec this iteration
+        self._face_rec_cam_turn: int = 0
         # Exit code: 0 = clean password-confirmed quit, 1 = crash/kill
         self._exit_code = 1
 
@@ -430,7 +459,6 @@ class MonitoringSystem:
         # DETECTION_SKIP_FRAMES anyway, so faster looping wastes CPU.
         target_loop_fps = 30  # user-requested minimum
         target_loop_dt = 1.0 / target_loop_fps
-        face_rec_throttle = 0  # counter for face rec submission throttling
 
         try:
             while self.running:
@@ -458,14 +486,12 @@ class MonitoringSystem:
                     if pipe is None:
                         continue
 
-                    # ── detection (with frame skipping + camera alternation) ──
-                    # With N cameras, each camera only runs YOLO on 1/N of
-                    # loop iterations.  Combined with DETECTION_SKIP_FRAMES
-                    # this dramatically reduces CPU load.
-                    cam_ids = list(frames.keys())
-                    is_this_cams_turn = (global_loop % len(cam_ids) == cam_ids.index(cam_id))
+                    # ── detection (with per-camera frame skipping) ──
+                    # Each camera independently skips DETECTION_SKIP_FRAMES.
+                    # Removed per-camera alternation: it halved effective
+                    # detection rate per camera and caused track fragmentation.
                     skip = getattr(config, "DETECTION_SKIP_FRAMES", 1)
-                    should_detect = is_this_cams_turn and (pipe.loop_counter % skip == 0)
+                    should_detect = (pipe.loop_counter % skip == 0)
 
                     if should_detect:
                         detections, scores = pipe.detector.detect_with_scores(frame)
@@ -486,27 +512,23 @@ class MonitoringSystem:
                     for track in unbound:
                         self.global_binder.attempt_handoff(cam_id, track, frame)
 
-                    # ── face rec for ALL tracks (re-verify identity) ──
-                    # Run on unbound tracks immediately, and periodically on
-                    # bound tracks to catch identity changes (different person
-                    # taking over the same track position).
+                    # ── face rec for UNBOUND tracks only ──
+                    # Face recognition only fires when there are unbound
+                    # tracks.  Already-bound tracks are maintained by the
+                    # body-descriptor system, not by re-running face rec
+                    # (which caused identity swaps between nearby people).
+                    # Round-robin: only ONE camera submits per iteration
+                    # to prevent the queue-drop overwrite bug.
+                    cam_ids = list(frames.keys())
                     still_unbound = self.global_binder.get_unbound_tracks(cam_id, tracks)
-                    needs_face_rec = bool(still_unbound) or (face_rec_throttle % 15 == 0)
-                    face_rec_throttle += 1
-                    if (needs_face_rec
-                            and not self._face_worker.has_pending
-                            and face_rec_throttle % 3 == 0):
-                        # Downscale before copying: face recognizer already
-                        # resizes to FACE_FRAME_MAX_DIM internally, so send
-                        # a smaller copy (~0.5 MB instead of ~2.7 MB).
-                        _h, _w = frame.shape[:2]
-                        _max = getattr(config, "FACE_FRAME_MAX_DIM", 480)
-                        if max(_h, _w) > _max:
-                            _s = _max / max(_h, _w)
-                            _small = cv2.resize(frame, (int(_w * _s), int(_h * _s)))
-                        else:
-                            _small = frame.copy()
-                        self._face_worker.submit(cam_id, _small, tracks)
+                    is_my_turn = (cam_ids.index(cam_id) == self._face_rec_cam_turn % len(cam_ids))
+                    if (bool(still_unbound)
+                            and is_my_turn
+                            and not self._face_worker.has_pending):
+                        # Pass original frame — detect_faces() handles its
+                        # own downscale + upscale so face bboxes are returned
+                        # in original-frame coordinates, matching track bboxes.
+                        self._face_worker.submit(cam_id, frame, tracks)
 
                     # ── periodically refresh histograms for bound tracks ──
                     if global_loop % self._hist_update_interval == 0:
@@ -527,6 +549,9 @@ class MonitoringSystem:
                         "tracks": tracks,
                         "faces": cam_faces,
                     }
+
+                # Advance face-rec round-robin so next iteration a different camera submits
+                self._face_rec_cam_turn += 1
 
                 # ── global attendance state update ──
                 for emp_id, sm in self.state_machines.items():
@@ -551,7 +576,10 @@ class MonitoringSystem:
                             self.audio_alert.play_break_reminder(name)
 
                 # Unknown person: 5-minute grace period with first+last snapshot
+                # Cross-camera dedup: if the same physical person is visible on
+                # two cameras, we treat it as ONE unknown person, not two.
                 import tempfile, os
+                from core.global_id_binder import compute_body_descriptor, compare_descriptors as _cmp_desc
                 active_unknown_keys = set()
                 for cam_id in self.pipelines:
                     cam_tracks = display_data.get(cam_id, {}).get('tracks', [])
@@ -562,24 +590,57 @@ class MonitoringSystem:
                         active_unknown_keys.add(key)
 
                         if key not in self._unknown_tracker:
-                            # First time seeing this unrecognized track — ask them to face camera
-                            self.audio_alert.play_look_at_camera()
+                            # Cross-camera dedup: check if an existing unknown
+                            # entry on another camera matches this person's
+                            # body descriptor.  If so, reuse that entry.
+                            _frame_for_desc = frames.get(cam_id)
+                            _matched_existing = None
+                            if _frame_for_desc is not None and self._unknown_tracker:
+                                _new_desc = compute_body_descriptor(_frame_for_desc, track.bbox)
+                                if _new_desc.histogram is not None:
+                                    for _ekey, _eentry in self._unknown_tracker.items():
+                                        _edesc = _eentry.get('descriptor')
+                                        if _edesc is not None and _edesc.histogram is not None:
+                                            _sim = _cmp_desc(_new_desc, _edesc, is_cross_camera=True)
+                                            if _sim > 0.55:
+                                                _matched_existing = _ekey
+                                                break
+                                    # Store the descriptor for future dedup checks
+                                    _stored_desc = _new_desc
+                                else:
+                                    _stored_desc = None
+                            else:
+                                _stored_desc = None
 
-                            # Capture first snapshot for potential security alert later
-                            first_snap = None
-                            _frame = self._latest_frames.get(cam_id)
-                            if _frame is not None:
-                                first_snap = os.path.join(
-                                    tempfile.gettempdir(),
-                                    f"unknown_first_cam{cam_id}_t{track.track_id}_{int(current_time)}.jpg"
+                            if _matched_existing is not None:
+                                # Same person already tracked on another cam — link this key
+                                # to the existing entry so it shares the same first_seen / alert.
+                                self._unknown_tracker[key] = self._unknown_tracker[_matched_existing]
+                                active_unknown_keys.add(_matched_existing)
+                                logger.debug(
+                                    f"Unknown dedup: cam {cam_id} track {track.track_id} "
+                                    f"matches existing {_matched_existing}"
                                 )
-                                cv2.imwrite(first_snap, _frame)
-                            self._unknown_tracker[key] = {
-                                'first_seen': current_time,
-                                'first_snap': first_snap,
-                                'alerted': False,
-                            }
-                            logger.info(f"Unknown person tracked: cam {cam_id}, track {track.track_id}")
+                            else:
+                                # Genuinely new unknown person
+                                self.audio_alert.play_look_at_camera()
+
+                                # Capture first snapshot for potential security alert later
+                                first_snap = None
+                                _frame = self._latest_frames.get(cam_id)
+                                if _frame is not None:
+                                    first_snap = os.path.join(
+                                        tempfile.gettempdir(),
+                                        f"unknown_first_cam{cam_id}_t{track.track_id}_{int(current_time)}.jpg"
+                                    )
+                                    cv2.imwrite(first_snap, _frame)
+                                self._unknown_tracker[key] = {
+                                    'first_seen': current_time,
+                                    'first_snap': first_snap,
+                                    'alerted': False,
+                                    'descriptor': _stored_desc,
+                                }
+                                logger.info(f"Unknown person tracked: cam {cam_id}, track {track.track_id}")
 
                         else:
                             entry = self._unknown_tracker[key]

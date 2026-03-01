@@ -108,23 +108,37 @@ def compute_body_descriptor(
     )
 
 
-def compare_descriptors(a: BodyDescriptor, b: BodyDescriptor) -> float:
+def compare_descriptors(a: BodyDescriptor, b: BodyDescriptor, is_cross_camera: bool = False) -> float:
     """
     Compare two body descriptors.  Returns a score in [0, 1].
 
-    Scoring breakdown (weights sum to 1.0):
+    When is_cross_camera=True the spatial-proximity component is
+    disabled (pixels from different camera views are unrelated) and
+    its weight is redistributed to the histogram component.
+
+    Same-camera scoring breakdown (weights sum to 1.0):
       0.45  histogram correlation
       0.15  aspect ratio similarity
       0.15  upper body colour distance
       0.15  lower body colour distance
       0.10  spatial proximity
+
+    Cross-camera scoring breakdown:
+      0.55  histogram correlation  (+0.10 from spatial)
+      0.15  aspect ratio similarity
+      0.15  upper body colour distance
+      0.15  lower body colour distance
+      0.00  spatial proximity (disabled)
     """
     score = 0.0
 
-    # Histogram (0.45)
+    hist_weight = 0.55 if is_cross_camera else 0.45
+    spatial_weight = 0.0 if is_cross_camera else 0.10
+
+    # Histogram
     if a.histogram is not None and b.histogram is not None:
         hist_corr = _compare_histograms(a.histogram, b.histogram)
-        score += 0.45 * max(0.0, hist_corr)
+        score += hist_weight * max(0.0, hist_corr)
 
     # Aspect ratio similarity (0.15) -- penalise large differences
     ar_diff = abs(a.aspect_ratio - b.aspect_ratio)
@@ -143,11 +157,12 @@ def compare_descriptors(a: BodyDescriptor, b: BodyDescriptor) -> float:
         lower_score = max(0.0, 1.0 - lower_dist / 100.0)
         score += 0.15 * lower_score
 
-    # Spatial proximity (0.10)
-    spatial_px = getattr(config, "SPATIAL_MATCH_PIXELS", 150)
-    px_dist = math.hypot(a.position[0] - b.position[0], a.position[1] - b.position[1])
-    spatial_score = max(0.0, 1.0 - px_dist / spatial_px)
-    score += 0.10 * spatial_score
+    # Spatial proximity (same-camera only)
+    if spatial_weight > 0:
+        spatial_px = getattr(config, "SPATIAL_MATCH_PIXELS", 150)
+        px_dist = math.hypot(a.position[0] - b.position[0], a.position[1] - b.position[1])
+        spatial_score = max(0.0, 1.0 - px_dist / spatial_px)
+        score += spatial_weight * spatial_score
 
     return score
 
@@ -204,8 +219,13 @@ class GlobalIDBinder:
         self._persist_seconds = getattr(config, "BINDING_PERSIST_SECONDS", 7200)
         self._same_cam_window = getattr(config, "SAME_CAM_HANDOFF_WINDOW", 300)
 
-        # Descriptor match threshold (0-1): above this = auto-bind
-        self._descriptor_threshold = 0.55
+        # Descriptor match thresholds (0-1):
+        # Same-camera re-ID can use a lower threshold (colour is more stable)
+        self._descriptor_threshold_same = 0.60
+        # Cross-camera needs a higher bar (different lighting, angle)
+        self._descriptor_threshold_cross = 0.65
+        # Minimum gap between best and second-best to accept a match
+        self._descriptor_gap_min = 0.08
 
     # ── per-camera binder management ───────────────────────────────────
 
@@ -228,8 +248,22 @@ class GlobalIDBinder:
         frame: Optional[np.ndarray] = None,
         bbox: Optional[Tuple[int, int, int, int]] = None,
     ):
-        """Bind a track on a specific camera to an employee."""
+        """Bind a track on a specific camera to an employee.
+
+        Refuses to overwrite an existing (cam, track)->employee mapping
+        with a *different* employee (defensive guard against identity swaps).
+        """
         now = time.time()
+
+        # Defensive guard: if this track is already bound to a DIFFERENT
+        # employee, refuse the re-bind to prevent identity swaps.
+        existing_emp = self._track_to_employee.get((cam_id, track_id))
+        if existing_emp is not None and existing_emp != employee_id:
+            logger.warning(
+                f"Refusing re-bind: cam {cam_id} track {track_id} is "
+                f"already bound to {existing_emp}, rejecting {employee_id}"
+            )
+            return
 
         # Remove any previous binding for this employee on another camera
         old = self._employee_bindings.get(employee_id)
@@ -288,10 +322,12 @@ class GlobalIDBinder:
 
         best_emp: Optional[str] = None
         best_score = -1.0
+        second_best_score = -1.0
 
         for emp_id, mem_binding in list(self._remembered.items()):
             # Determine max window: same camera gets longer window
-            if mem_binding.cam_id == cam_id:
+            is_same_cam = (mem_binding.cam_id == cam_id)
+            if is_same_cam:
                 max_window = self._same_cam_window
             else:
                 max_window = self._handoff_window
@@ -310,15 +346,36 @@ class GlobalIDBinder:
             if mem_binding.descriptor is None:
                 continue
 
-            score = compare_descriptors(new_desc, mem_binding.descriptor)
+            score = compare_descriptors(
+                new_desc, mem_binding.descriptor,
+                is_cross_camera=(not is_same_cam),
+            )
 
             # Boost score for same-camera matches (more reliable)
-            if mem_binding.cam_id == cam_id:
+            if is_same_cam:
                 score = min(1.0, score * 1.1)
 
-            if score > self._descriptor_threshold and score > best_score:
+            # Pick the appropriate threshold
+            threshold = self._descriptor_threshold_same if is_same_cam else self._descriptor_threshold_cross
+
+            if score > threshold and score > best_score:
+                second_best_score = best_score
                 best_score = score
                 best_emp = emp_id
+            elif score > second_best_score:
+                second_best_score = score
+
+        # Gap check: best must be clearly better than runner-up to avoid
+        # ambiguous matches (e.g. two people in similar dark clothing).
+        if best_emp is not None:
+            gap = best_score - max(0.0, second_best_score)
+            if gap < self._descriptor_gap_min:
+                logger.debug(
+                    f"[AUTO-BIND REJECTED] best={best_score:.3f} "
+                    f"second={second_best_score:.3f} gap={gap:.3f} < "
+                    f"{self._descriptor_gap_min} — ambiguous, skipping"
+                )
+                return None
 
         if best_emp is not None:
             logger.info(
