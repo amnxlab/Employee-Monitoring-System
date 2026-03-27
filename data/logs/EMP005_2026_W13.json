@@ -1,0 +1,37 @@
+{
+  "employee_id": "EMP005",
+  "employee_name": "King in the North",
+  "year": 2026,
+  "week": 13,
+  "sessions": [
+    {
+      "event_id": "EVT-20260327-154147-GHN8",
+      "employee_id": "EMP005",
+      "employee_name": "King in the North",
+      "clock_in": "2026-03-27T15:41:47.542507",
+      "clock_out": "2026-03-27T15:48:56.497746",
+      "duration_seconds": 425.895628452301,
+      "date_str": "2026-03-27",
+      "snapshot_path": "EVT-20260327-154147-GHN8.jpg",
+      "interruptions": [
+        {
+          "lost_at": "2026-03-27T15:46:16.101088",
+          "recovered_at": "2026-03-27T15:46:18.605209",
+          "event_id_lost": "EVT-20260327-154616-7F69",
+          "event_id_recovered": "EVT-20260327-154618-4RFU"
+        },
+        {
+          "lost_at": "2026-03-27T15:46:28.058132",
+          "recovered_at": "2026-03-27T15:46:28.613621",
+          "event_id_lost": "EVT-20260327-154628-5YP3",
+          "event_id_recovered": "EVT-20260327-154628-C5LF"
+        }
+      ],
+      "closed": true
+    }
+  ],
+  "daily_totals": {
+    "2026-03-27": 425.895628452301
+  },
+  "weekly_total_seconds": 425.895628452301
+}

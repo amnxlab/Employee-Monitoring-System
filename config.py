@@ -22,14 +22,14 @@ FACE_MIN_SIZE = 40          # minimum face bbox dimension (px); smaller faces ar
 FACE_CONFIRM_PASSES = 2     # require same employee matched on N independent passes before binding
 
 # Tracking
-TRACK_BUFFER = 200  # frames to keep lost tracks alive; raised from 150 for better continuity
+TRACK_BUFFER = 450  # frames to keep lost tracks alive (~15s at 30fps); raised for desk-work occlusions
 
 # Persistent body tracking -- gap-filler only, NOT a substitute for face recognition
 # Keep these values short: body colour matching causes identity swaps when people stand close.
 # ByteTrack handles continuous following; body descriptors only bridge momentary occlusions.
-BINDING_PERSIST_SECONDS = 15      # 15 seconds: body re-ID only for brief occlusions
-SAME_CAM_HANDOFF_WINDOW = 15      # 15 seconds: same-camera re-ID window
-HANDOFF_WINDOW_SECONDS = 0        # 0 = disable cross-camera body handoff (requires face rec instead)
+BINDING_PERSIST_SECONDS = 60      # how long an employee stays in _remembered; >= HANDOFF_WINDOW_SECONDS
+SAME_CAM_HANDOFF_WINDOW = 15      # same-camera body re-ID window (kept short to prevent close-person swaps)
+HANDOFF_WINDOW_SECONDS = 60       # cross-camera body re-ID window (person walks between cameras)
 SPATIAL_MATCH_PIXELS = 150        # px radius for position-based matching boost
 
 # Track Validation (to prevent binding hands/objects as people)
@@ -42,7 +42,11 @@ BINDING_IOU_THRESHOLD = 0.25  # raised from 0.1 to require meaningful face-track
 # State Machine
 TEMP_LOST_TIMEOUT_SECONDS = 1800  # 30 minutes - if not seen for 30 min, auto clock-out
 DEBOUNCE_FRAMES = 3
-DEBOUNCE_SECONDS = 0.5  # time-based debounce (preferred over frame-based)
+DEBOUNCE_SECONDS = 0.5             # time-based debounce for clock-in/recovery transitions
+# How long a person must be continuously invisible before entering TEMP_LOST.
+# Kept much higher than DEBOUNCE_SECONDS so brief occlusions (person leans over desk,
+# walks behind a colleague, ByteTrack reassigns track_id) never trigger TEMP_LOST.
+TEMP_LOST_DEBOUNCE_SECONDS = 30   # 30 seconds of continuous invisibility required
 
 # Camera (no PTZ/movement control)
 CAMERA_INDEX = int(os.getenv("CAMERA_INDEX", 0))
@@ -54,15 +58,25 @@ CAMERA_FPS = 30  # match the capture rate to the main loop (no point reading at 
 # Multi-Camera Handoff (see HANDOFF_WINDOW_SECONDS above in Tracking section)
 HISTOGRAM_MATCH_THRESHOLD = 0.7   # cv2.compareHist correlation threshold
 
+# Physical camera layout — used to score cross-camera handoff direction.
+# cam 0 = left side of room, cam 1 = right side of room.
+# A person exiting the RIGHT half of cam 0 should enter the LEFT half of cam 1,
+# and vice versa.  Geometrically inconsistent entries get a score penalty.
+CAMERA_LEFT_ID = int(os.getenv("CAMERA_LEFT_ID", 0))
+CAMERA_RIGHT_ID = int(os.getenv("CAMERA_RIGHT_ID", 1))
+
 # Audio Alerts
 AUDIO_ENABLED = os.getenv("AUDIO_ENABLED", "true").lower() == "true"
-AUDIO_WARNING_DELAY = 60          # seconds before first spoken warning
-AUDIO_WARNING_INTERVAL = 300      # seconds between repeated warnings
+AUDIO_WARNING_DELAY = 300         # seconds before first "missing employee" spoken warning (was 60)
+AUDIO_WARNING_INTERVAL = 600      # seconds between repeated missing-person warnings (was 300)
 
 # Notification cooldowns (prevent alert floods in main loop)
 OVERTIME_ALERT_COOLDOWN = 3600    # seconds between repeated overtime alerts per employee
 BREAK_ALERT_COOLDOWN = 3600       # seconds between repeated break-reminder alerts per employee
 UNKNOWN_PERSON_AUDIO_COOLDOWN = 180  # seconds between "look at camera" beeps
+# Minimum gap between consecutive TEMP_LOST and recovered Discord notifications
+# per employee.  Avoids "Alice vanished / Alice is back" spam from brief absences.
+PRESENCE_NOTIFY_COOLDOWN = 300    # 5 minutes
 
 # Discord — 3-channel webhook URLs
 DISCORD_WEBHOOK_HERE_GONE = os.getenv("DISCORD_WEBHOOK_HERE_GONE", "")

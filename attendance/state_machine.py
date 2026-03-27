@@ -75,8 +75,12 @@ class AttendanceStateMachine:
         self.employee_id = employee_id
         self.temp_lost_timeout = temp_lost_timeout or config.TEMP_LOST_TIMEOUT_SECONDS
         self.debounce_frames = debounce_frames or config.DEBOUNCE_FRAMES
-        # Time-based debounce (preferred over frame-based)
+        # Fast debounce for clock-in / recovery transitions (0.5 s)
         self.debounce_seconds = debounce_seconds or getattr(config, 'DEBOUNCE_SECONDS', 0.5)
+        # Slow debounce for CLOCKED_IN → TEMP_LOST (30 s).
+        # Prevents brief track losses (occlusion, ByteTrack track_id reassignment,
+        # person looking down) from triggering TEMP_LOST and its notifications.
+        self.temp_lost_debounce_seconds = getattr(config, 'TEMP_LOST_DEBOUNCE_SECONDS', 30)
         
         self.state = AttendanceStateMachineState()
         self._transition_callbacks: list = []
@@ -164,10 +168,17 @@ class AttendanceStateMachine:
     
     def _handle_clocked_in_state(self, is_visible: bool, current_time: float) -> Optional[StateTransition]:
         """Handle CLOCKED_IN state transitions."""
-        if not is_visible and self._is_invisible_debounced(current_time):
-            self.state.temp_lost_time = current_time
-            self.state.just_temp_lost = True
-            return self._transition_to(AttendanceState.TEMP_LOST, current_time)
+        if not is_visible:
+            # Use the slow debounce here: require TEMP_LOST_DEBOUNCE_SECONDS of
+            # continuous invisibility so that brief occlusions (colleague walks in
+            # front, person leans over desk, ByteTrack reassigns a track_id) never
+            # cause a false TEMP_LOST transition and its Discord / audio cascade.
+            if (self.state.first_invisible_time is not None
+                    and (current_time - self.state.first_invisible_time)
+                    >= self.temp_lost_debounce_seconds):
+                self.state.temp_lost_time = current_time
+                self.state.just_temp_lost = True
+                return self._transition_to(AttendanceState.TEMP_LOST, current_time)
         return None
     
     def _handle_temp_lost_state(self, is_visible: bool, current_time: float) -> Optional[StateTransition]:

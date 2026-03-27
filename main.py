@@ -347,6 +347,19 @@ class MonitoringSystem:
         # multiple unbound tracks in the same frame are a single lab event.
         self._last_look_at_camera: float = 0.0
 
+        # Discord TEMP_LOST / recovered throttle.
+        # With a 30-second TEMP_LOST debounce, genuine track losses that do
+        # reach TEMP_LOST are significant.  But brief repeated absences (person
+        # walks to the printer, sits back down) should not flood Discord.
+        # These dicts track the last time each notification was sent so we
+        # only send to Discord once per PRESENCE_NOTIFY_COOLDOWN seconds.
+        self._temp_lost_notified: Dict[str, float] = {}
+        self._recovered_notified: Dict[str, float] = {}
+        # 5-minute cooldown: one TEMP_LOST + one recovered notification per 5 min
+        self._presence_notify_cooldown: float = getattr(
+            config, 'PRESENCE_NOTIFY_COOLDOWN', 300
+        )
+
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
 
@@ -467,15 +480,28 @@ class MonitoringSystem:
                 # Same session: recovered (no new clock-in)
                 parent = self.event_logger.get_active_event_id(emp_id)
                 self.event_logger.log_recovered(emp_id, parent, timestamp)
-                self.discord.send_recovered(name)
+                # Throttle recovered notification in the same way as TEMP_LOST.
+                now_ts = transition.timestamp
+                last_rec = self._recovered_notified.get(emp_id, 0.0)
+                if now_ts - last_rec >= self._presence_notify_cooldown:
+                    self._recovered_notified[emp_id] = now_ts
+                    self.discord.send_recovered(name)
+                    # Audio: welcome back — only when we also notify Discord,
+                    # so repeated quick recoveries are silent.
+                    self.audio_alert.play_recovered(name)
                 logger.info(f"{name} recovered from temp lost")
-                # Audio: welcome back
-                self.audio_alert.play_recovered(name)
 
         elif transition.to_state == AttendanceState.TEMP_LOST:
             parent = self.event_logger.get_active_event_id(emp_id)
             self.event_logger.log_temp_lost(emp_id, parent, timestamp)
-            self.discord.send_temp_lost(name)
+            # Throttle Discord notification: only send if not sent within the
+            # last PRESENCE_NOTIFY_COOLDOWN seconds.  Genuine long absences
+            # still get notified; brief repeated trips do not spam the channel.
+            now_ts = transition.timestamp
+            last_tl = self._temp_lost_notified.get(emp_id, 0.0)
+            if now_ts - last_tl >= self._presence_notify_cooldown:
+                self._temp_lost_notified[emp_id] = now_ts
+                self.discord.send_temp_lost(name)
             logger.info(f"{name} temporarily lost")
 
         elif transition.to_state == AttendanceState.CLOCKED_OUT:
@@ -506,6 +532,8 @@ class MonitoringSystem:
             # Reset per-session alert cooldowns so they fire fresh next session
             self._overtime_last_alerted.pop(emp_id, None)
             self._break_last_alerted.pop(emp_id, None)
+            self._temp_lost_notified.pop(emp_id, None)
+            self._recovered_notified.pop(emp_id, None)
 
     def _take_clock_in_snapshot(self, emp_id: str, event_id: str = None) -> Optional[str]:
         """Capture a snapshot from the camera where the employee was detected."""

@@ -109,6 +109,44 @@ def compute_body_descriptor(
     )
 
 
+def _is_cross_cam_direction_consistent(
+    src_cam: int,
+    exit_x: int,
+    dst_cam: int,
+    entry_x: int,
+    frame_width: int,
+) -> bool:
+    """
+    Return True when the exit / entry edge pair is spatially plausible given
+    the camera layout (cam LEFT_ID on left side, cam RIGHT_ID on right side).
+
+    Expected transitions:
+      cam_left  → exit right half  → cam_right → entry left half
+      cam_right → exit left half   → cam_left  → entry right half
+
+    Any other combination scores a penalty (see `attempt_handoff`).
+    """
+    if frame_width <= 0:
+        return True  # cannot judge, assume consistent
+
+    left_cam = getattr(config, "CAMERA_LEFT_ID", 0)
+    right_cam = getattr(config, "CAMERA_RIGHT_ID", 1)
+
+    exit_ratio = exit_x / frame_width
+    entry_ratio = entry_x / frame_width
+
+    # Person moved left→right: exited right half of left cam, entered left half of right cam
+    if src_cam == left_cam and dst_cam == right_cam:
+        return exit_ratio > 0.5 and entry_ratio < 0.5
+
+    # Person moved right→left: exited left half of right cam, entered right half of left cam
+    if src_cam == right_cam and dst_cam == left_cam:
+        return exit_ratio < 0.5 and entry_ratio > 0.5
+
+    # Unknown camera pair — don't penalise
+    return True
+
+
 def compare_descriptors(a: BodyDescriptor, b: BodyDescriptor, is_cross_camera: bool = False) -> float:
     """
     Compare two body descriptors.  Returns a score in [0, 1].
@@ -320,6 +358,7 @@ class GlobalIDBinder:
         Returns the matched employee_id or None.
         """
         now = time.time()
+        frame_width = frame.shape[1] if frame is not None else 0
 
         new_desc = compute_body_descriptor(frame, track.bbox)
         if new_desc.histogram is None:
@@ -363,6 +402,24 @@ class GlobalIDBinder:
             # Boost score for same-camera matches (more reliable)
             if is_same_cam:
                 score = min(1.0, score * 1.1)
+            else:
+                # Spatial direction consistency check (cross-camera only).
+                # If the person exited from the wrong side of their previous
+                # camera relative to the new camera's position in the room,
+                # halve their score so the correct direction wins easily.
+                exit_x = mem_binding.descriptor.position[0]
+                entry_x = new_desc.position[0]
+                if not _is_cross_cam_direction_consistent(
+                    mem_binding.cam_id, exit_x,
+                    cam_id, entry_x,
+                    frame_width,
+                ):
+                    score *= 0.5
+                    logger.debug(
+                        f"[HANDOFF-SPATIAL] {emp_id} direction inconsistent "
+                        f"(cam {mem_binding.cam_id} exit_x={exit_x} → "
+                        f"cam {cam_id} entry_x={entry_x}), score halved to {score:.3f}"
+                    )
 
             # Pick the appropriate threshold
             threshold = self._descriptor_threshold_same if is_same_cam else self._descriptor_threshold_cross
