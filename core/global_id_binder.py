@@ -335,6 +335,10 @@ class GlobalIDBinder:
             if is_same_cam:
                 max_window = self._same_cam_window
             else:
+                # Cross-camera body handoff disabled when HANDOFF_WINDOW_SECONDS == 0.
+                # Cross-camera identity must be established via face recognition only.
+                if self._handoff_window == 0:
+                    continue
                 max_window = self._handoff_window
 
             # Never exceed the global persistence timeout

@@ -1,0 +1,109 @@
+{
+  "employee_id": "EMP001",
+  "employee_name": "Garrett Valentine",
+  "year": 2026,
+  "week": 10,
+  "sessions": [
+    {
+      "event_id": "EVT-20260302-130138-9GAY",
+      "employee_id": "EMP001",
+      "employee_name": "Garrett Valentine",
+      "clock_in": "2026-03-02T13:01:38.698951",
+      "clock_out": "2026-03-02T13:43:49.950287",
+      "duration_seconds": 218.6939196586609,
+      "date_str": "2026-03-02",
+      "snapshot_path": "EVT-20260302-130138-9GAY.jpg",
+      "interruptions": [
+        {
+          "lost_at": "2026-03-02T13:01:47.718505",
+          "recovered_at": "2026-03-02T13:01:52.709094",
+          "event_id_lost": "EVT-20260302-130147-P0OI",
+          "event_id_recovered": "EVT-20260302-130152-72HQ"
+        },
+        {
+          "lost_at": "2026-03-02T13:02:03.884729",
+          "recovered_at": "2026-03-02T13:02:40.055969",
+          "event_id_lost": "EVT-20260302-130203-M8ZX",
+          "event_id_recovered": "EVT-20260302-130240-5Q2O"
+        },
+        {
+          "lost_at": "2026-03-02T13:02:46.210224",
+          "recovered_at": "2026-03-02T13:02:46.927871",
+          "event_id_lost": "EVT-20260302-130246-RWHW",
+          "event_id_recovered": "EVT-20260302-130246-OWC7"
+        },
+        {
+          "lost_at": "2026-03-02T13:02:48.247891",
+          "recovered_at": "2026-03-02T13:02:58.414898",
+          "event_id_lost": "EVT-20260302-130248-HNSY",
+          "event_id_recovered": "EVT-20260302-130258-SDPN"
+        },
+        {
+          "lost_at": "2026-03-02T13:02:59.304219",
+          "recovered_at": "2026-03-02T13:06:49.832691",
+          "event_id_lost": "EVT-20260302-130259-NIDC",
+          "event_id_recovered": "EVT-20260302-130649-YVG4"
+        },
+        {
+          "lost_at": "2026-03-02T13:06:50.724008",
+          "recovered_at": "2026-03-02T13:07:22.120674",
+          "event_id_lost": "EVT-20260302-130650-PVSR",
+          "event_id_recovered": "EVT-20260302-130722-M72J"
+        },
+        {
+          "lost_at": "2026-03-02T13:07:43.306422",
+          "recovered_at": "2026-03-02T13:07:44.535193",
+          "event_id_lost": "EVT-20260302-130743-AHQI",
+          "event_id_recovered": "EVT-20260302-130744-EDM6"
+        },
+        {
+          "lost_at": "2026-03-02T13:07:45.685055",
+          "recovered_at": "2026-03-02T13:09:29.346742",
+          "event_id_lost": "EVT-20260302-130745-T9CW",
+          "event_id_recovered": "EVT-20260302-130929-4MWB"
+        },
+        {
+          "lost_at": "2026-03-02T13:09:34.328684",
+          "recovered_at": "2026-03-02T13:09:41.070259",
+          "event_id_lost": "EVT-20260302-130934-I231",
+          "event_id_recovered": "EVT-20260302-130941-M8SQ"
+        },
+        {
+          "lost_at": "2026-03-02T13:09:42.588245",
+          "recovered_at": "2026-03-02T13:10:55.540170",
+          "event_id_lost": "EVT-20260302-130942-P4MH",
+          "event_id_recovered": "EVT-20260302-131055-CTUP"
+        },
+        {
+          "lost_at": "2026-03-02T13:10:56.841398",
+          "recovered_at": "2026-03-02T13:11:03.628813",
+          "event_id_lost": "EVT-20260302-131056-WPG1",
+          "event_id_recovered": "EVT-20260302-131103-1GPW"
+        },
+        {
+          "lost_at": "2026-03-02T13:11:23.489853",
+          "recovered_at": "2026-03-02T13:11:26.384717",
+          "event_id_lost": "EVT-20260302-131123-0LIM",
+          "event_id_recovered": "EVT-20260302-131126-WAUD"
+        },
+        {
+          "lost_at": "2026-03-02T13:12:40.837476",
+          "recovered_at": "2026-03-02T13:12:45.157033",
+          "event_id_lost": "EVT-20260302-131240-63PR",
+          "event_id_recovered": "EVT-20260302-131245-RNYF"
+        },
+        {
+          "lost_at": "2026-03-02T13:13:49.934852",
+          "recovered_at": "2026-03-02T13:43:49.950287",
+          "event_id_lost": "EVT-20260302-131349-75KI",
+          "event_id_recovered": ""
+        }
+      ],
+      "closed": true
+    }
+  ],
+  "daily_totals": {
+    "2026-03-02": 218.6939196586609
+  },
+  "weekly_total_seconds": 218.6939196586609
+}

@@ -3,9 +3,978 @@
   "employee_name": "Aarjan",
   "year": 2026,
   "week": 9,
-  "sessions": [],
+  "sessions": [
+    {
+      "event_id": "EVT-20260227-144242-IGVA",
+      "employee_id": "EMP002",
+      "employee_name": "Aarjan",
+      "clock_in": "2026-02-27T14:42:42.509660",
+      "clock_out": "2026-02-27T15:35:13.524437",
+      "duration_seconds": 1351.0147769451141,
+      "date_str": "2026-02-27",
+      "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260227-144242-IVAV.jpg",
+      "interruptions": [
+        {
+          "lost_at": "2026-02-27T14:43:36.739780",
+          "recovered_at": "2026-02-27T14:43:37.077296",
+          "event_id_lost": "EVT-20260227-144336-BHMN",
+          "event_id_recovered": "EVT-20260227-144337-31CV"
+        },
+        {
+          "lost_at": "2026-02-27T14:43:41.458240",
+          "recovered_at": "2026-02-27T14:43:45.544397",
+          "event_id_lost": "EVT-20260227-144341-7ZTE",
+          "event_id_recovered": "EVT-20260227-144345-FFCP"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:00.973494",
+          "recovered_at": "2026-02-27T14:44:01.713202",
+          "event_id_lost": "EVT-20260227-144400-KXQY",
+          "event_id_recovered": "EVT-20260227-144401-NOVP"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:16.264592",
+          "recovered_at": "2026-02-27T14:44:18.755774",
+          "event_id_lost": "EVT-20260227-144416-8QD3",
+          "event_id_recovered": "EVT-20260227-144418-Q3N7"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:24.363915",
+          "recovered_at": "2026-02-27T14:44:24.776126",
+          "event_id_lost": "EVT-20260227-144424-IH82",
+          "event_id_recovered": "EVT-20260227-144424-B899"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:25.512547",
+          "recovered_at": "2026-02-27T14:44:25.880050",
+          "event_id_lost": "EVT-20260227-144425-O9Z2",
+          "event_id_recovered": "EVT-20260227-144425-RC0P"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:28.494096",
+          "recovered_at": "2026-02-27T14:44:28.864869",
+          "event_id_lost": "EVT-20260227-144428-E1XK",
+          "event_id_recovered": "EVT-20260227-144428-74BY"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:30.028261",
+          "recovered_at": "2026-02-27T14:44:30.367827",
+          "event_id_lost": "EVT-20260227-144430-INMG",
+          "event_id_recovered": "EVT-20260227-144430-HSZQ"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:32.746955",
+          "recovered_at": "2026-02-27T14:44:33.759043",
+          "event_id_lost": "EVT-20260227-144432-9OM5",
+          "event_id_recovered": "EVT-20260227-144433-6BCQ"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:37.228652",
+          "recovered_at": "2026-02-27T14:44:37.566133",
+          "event_id_lost": "EVT-20260227-144437-5J4Z",
+          "event_id_recovered": "EVT-20260227-144437-W9ZS"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:37.917248",
+          "recovered_at": "2026-02-27T14:44:38.256695",
+          "event_id_lost": "EVT-20260227-144437-Z35V",
+          "event_id_recovered": "EVT-20260227-144438-YB1X"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:39.606606",
+          "recovered_at": "2026-02-27T14:44:39.943121",
+          "event_id_lost": "EVT-20260227-144439-3F5J",
+          "event_id_recovered": "EVT-20260227-144439-R7ES"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:43.685576",
+          "recovered_at": "2026-02-27T14:44:44.359206",
+          "event_id_lost": "EVT-20260227-144443-93NL",
+          "event_id_recovered": "EVT-20260227-144444-ZLRI"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:51.473639",
+          "recovered_at": "2026-02-27T14:44:51.811632",
+          "event_id_lost": "EVT-20260227-144451-JKTH",
+          "event_id_recovered": "EVT-20260227-144451-Z0LS"
+        },
+        {
+          "lost_at": "2026-02-27T14:44:52.485430",
+          "recovered_at": "2026-02-27T14:44:53.502249",
+          "event_id_lost": "EVT-20260227-144452-NSQM",
+          "event_id_recovered": "EVT-20260227-144453-WU8P"
+        },
+        {
+          "lost_at": "2026-02-27T14:45:37.928490",
+          "recovered_at": "2026-02-27T14:45:41.021111",
+          "event_id_lost": "EVT-20260227-144537-MFO1",
+          "event_id_recovered": "EVT-20260227-144541-K1B4"
+        },
+        {
+          "lost_at": "2026-02-27T14:45:53.785217",
+          "recovered_at": "2026-02-27T14:45:56.184522",
+          "event_id_lost": "EVT-20260227-144553-KS2Z",
+          "event_id_recovered": "EVT-20260227-144556-67IC"
+        },
+        {
+          "lost_at": "2026-02-27T14:45:56.521641",
+          "recovered_at": "2026-02-27T14:45:57.308420",
+          "event_id_lost": "EVT-20260227-144556-IUEP",
+          "event_id_recovered": "EVT-20260227-144557-QNRL"
+        },
+        {
+          "lost_at": "2026-02-27T14:45:57.671754",
+          "recovered_at": "2026-02-27T14:45:58.346928",
+          "event_id_lost": "EVT-20260227-144557-W49A",
+          "event_id_recovered": "EVT-20260227-144558-6HHU"
+        },
+        {
+          "lost_at": "2026-02-27T14:45:58.685528",
+          "recovered_at": "2026-02-27T14:46:00.034361",
+          "event_id_lost": "EVT-20260227-144558-MOJ4",
+          "event_id_recovered": "EVT-20260227-144600-E85T"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:00.371073",
+          "recovered_at": "2026-02-27T14:46:02.744131",
+          "event_id_lost": "EVT-20260227-144600-U0MW",
+          "event_id_recovered": "EVT-20260227-144602-B6US"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:11.566706",
+          "recovered_at": "2026-02-27T14:46:14.974350",
+          "event_id_lost": "EVT-20260227-144611-J0M7",
+          "event_id_recovered": "EVT-20260227-144614-I3N0"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:15.312698",
+          "recovered_at": "2026-02-27T14:46:20.077329",
+          "event_id_lost": "EVT-20260227-144615-ZEF4",
+          "event_id_recovered": "EVT-20260227-144620-0LQS"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:20.414506",
+          "recovered_at": "2026-02-27T14:46:21.102125",
+          "event_id_lost": "EVT-20260227-144620-DXUC",
+          "event_id_recovered": "EVT-20260227-144621-H630"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:21.776649",
+          "recovered_at": "2026-02-27T14:46:23.464235",
+          "event_id_lost": "EVT-20260227-144621-ZF5Z",
+          "event_id_recovered": "EVT-20260227-144623-1VZL"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:28.864275",
+          "recovered_at": "2026-02-27T14:46:30.212293",
+          "event_id_lost": "EVT-20260227-144628-BPT7",
+          "event_id_recovered": "EVT-20260227-144630-693F"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:32.626463",
+          "recovered_at": "2026-02-27T14:46:34.309585",
+          "event_id_lost": "EVT-20260227-144632-LV1N",
+          "event_id_recovered": "EVT-20260227-144634-ODCL"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:36.384416",
+          "recovered_at": "2026-02-27T14:46:36.721434",
+          "event_id_lost": "EVT-20260227-144636-OBHT",
+          "event_id_recovered": "EVT-20260227-144636-0RU0"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:37.394991",
+          "recovered_at": "2026-02-27T14:46:40.437828",
+          "event_id_lost": "EVT-20260227-144637-GHUL",
+          "event_id_recovered": "EVT-20260227-144640-N2NF"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:40.775760",
+          "recovered_at": "2026-02-27T14:46:41.461453",
+          "event_id_lost": "EVT-20260227-144640-TX1O",
+          "event_id_recovered": "EVT-20260227-144641-UIE5"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:42.474233",
+          "recovered_at": "2026-02-27T14:46:47.492585",
+          "event_id_lost": "EVT-20260227-144642-SKQ0",
+          "event_id_recovered": "EVT-20260227-144647-5P3F"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:48.167809",
+          "recovered_at": "2026-02-27T14:46:53.609050",
+          "event_id_lost": "EVT-20260227-144648-RBAL",
+          "event_id_recovered": "EVT-20260227-144653-HA89"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:53.915533",
+          "recovered_at": "2026-02-27T14:46:57.635191",
+          "event_id_lost": "EVT-20260227-144653-D35H",
+          "event_id_recovered": "EVT-20260227-144657-K8YI"
+        },
+        {
+          "lost_at": "2026-02-27T14:46:57.971658",
+          "recovered_at": "2026-02-27T14:47:10.193802",
+          "event_id_lost": "EVT-20260227-144657-7THC",
+          "event_id_recovered": "EVT-20260227-144710-050L"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:10.835482",
+          "recovered_at": "2026-02-27T14:47:11.173092",
+          "event_id_lost": "EVT-20260227-144710-M93Y",
+          "event_id_recovered": "EVT-20260227-144711-F18R"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:11.510026",
+          "recovered_at": "2026-02-27T14:47:12.858273",
+          "event_id_lost": "EVT-20260227-144711-XPOS",
+          "event_id_recovered": "EVT-20260227-144712-Y7KN"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:14.884952",
+          "recovered_at": "2026-02-27T14:47:15.895972",
+          "event_id_lost": "EVT-20260227-144714-J5WA",
+          "event_id_recovered": "EVT-20260227-144715-10F0"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:17.277598",
+          "recovered_at": "2026-02-27T14:47:17.615227",
+          "event_id_lost": "EVT-20260227-144717-F0LD",
+          "event_id_recovered": "EVT-20260227-144717-958R"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:18.970805",
+          "recovered_at": "2026-02-27T14:47:19.984442",
+          "event_id_lost": "EVT-20260227-144718-VLWQ",
+          "event_id_recovered": "EVT-20260227-144719-EF9C"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:22.365505",
+          "recovered_at": "2026-02-27T14:47:25.770468",
+          "event_id_lost": "EVT-20260227-144722-PYDN",
+          "event_id_recovered": "EVT-20260227-144725-TUCL"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:26.073796",
+          "recovered_at": "2026-02-27T14:47:26.412227",
+          "event_id_lost": "EVT-20260227-144726-80NG",
+          "event_id_recovered": "EVT-20260227-144726-XB1U"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:29.114483",
+          "recovered_at": "2026-02-27T14:47:30.126771",
+          "event_id_lost": "EVT-20260227-144729-R06Y",
+          "event_id_recovered": "EVT-20260227-144730-Q4UM"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:31.813114",
+          "recovered_at": "2026-02-27T14:47:35.911566",
+          "event_id_lost": "EVT-20260227-144731-G5ZO",
+          "event_id_recovered": "EVT-20260227-144735-9MKT"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:36.551813",
+          "recovered_at": "2026-02-27T14:47:38.928006",
+          "event_id_lost": "EVT-20260227-144736-52EX",
+          "event_id_recovered": "EVT-20260227-144738-6PXY"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:40.953837",
+          "recovered_at": "2026-02-27T14:47:42.994112",
+          "event_id_lost": "EVT-20260227-144740-G13M",
+          "event_id_recovered": "EVT-20260227-144742-6KOL"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:43.668205",
+          "recovered_at": "2026-02-27T14:47:44.006109",
+          "event_id_lost": "EVT-20260227-144743-KTY7",
+          "event_id_recovered": "EVT-20260227-144744-OLNO"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:45.019691",
+          "recovered_at": "2026-02-27T14:47:46.032880",
+          "event_id_lost": "EVT-20260227-144745-3P24",
+          "event_id_recovered": "EVT-20260227-144746-HTPB"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:46.370202",
+          "recovered_at": "2026-02-27T14:47:50.761364",
+          "event_id_lost": "EVT-20260227-144746-RQ1Q",
+          "event_id_recovered": "EVT-20260227-144750-U7GM"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:55.173016",
+          "recovered_at": "2026-02-27T14:47:58.933925",
+          "event_id_lost": "EVT-20260227-144755-1BTT",
+          "event_id_recovered": "EVT-20260227-144758-V1E5"
+        },
+        {
+          "lost_at": "2026-02-27T14:47:59.271344",
+          "recovered_at": "2026-02-27T14:48:07.419178",
+          "event_id_lost": "EVT-20260227-144759-N32A",
+          "event_id_recovered": "EVT-20260227-144807-E4C3"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:09.786434",
+          "recovered_at": "2026-02-27T14:48:12.492379",
+          "event_id_lost": "EVT-20260227-144809-7003",
+          "event_id_recovered": "EVT-20260227-144812-XR0Z"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:12.829409",
+          "recovered_at": "2026-02-27T14:48:13.167060",
+          "event_id_lost": "EVT-20260227-144812-HYEY",
+          "event_id_recovered": "EVT-20260227-144813-ZLKU"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:19.257990",
+          "recovered_at": "2026-02-27T14:48:19.596139",
+          "event_id_lost": "EVT-20260227-144819-BHK4",
+          "event_id_recovered": "EVT-20260227-144819-JMD2"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:19.932467",
+          "recovered_at": "2026-02-27T14:48:22.324503",
+          "event_id_lost": "EVT-20260227-144819-N3UG",
+          "event_id_recovered": "EVT-20260227-144822-A7A9"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:22.662333",
+          "recovered_at": "2026-02-27T14:48:23.337994",
+          "event_id_lost": "EVT-20260227-144822-F8YA",
+          "event_id_recovered": "EVT-20260227-144823-BM9J"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:24.398480",
+          "recovered_at": "2026-02-27T14:48:27.100539",
+          "event_id_lost": "EVT-20260227-144824-SKZQ",
+          "event_id_recovered": "EVT-20260227-144827-NE3C"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:28.448854",
+          "recovered_at": "2026-02-27T14:48:30.492116",
+          "event_id_lost": "EVT-20260227-144828-CL6Z",
+          "event_id_recovered": "EVT-20260227-144830-Y4RI"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:32.184964",
+          "recovered_at": "2026-02-27T14:48:32.858777",
+          "event_id_lost": "EVT-20260227-144832-TK2Q",
+          "event_id_recovered": "EVT-20260227-144832-K35Y"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:33.535479",
+          "recovered_at": "2026-02-27T14:48:42.380649",
+          "event_id_lost": "EVT-20260227-144833-ASTS",
+          "event_id_recovered": "EVT-20260227-144842-QWRE"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:42.685383",
+          "recovered_at": "2026-02-27T14:48:43.022918",
+          "event_id_lost": "EVT-20260227-144842-KSGE",
+          "event_id_recovered": "EVT-20260227-144843-8EBA"
+        },
+        {
+          "lost_at": "2026-02-27T14:48:43.705036",
+          "recovered_at": "2026-02-27T14:49:13.817508",
+          "event_id_lost": "EVT-20260227-144843-Y3NK",
+          "event_id_recovered": "EVT-20260227-144913-N9YR"
+        },
+        {
+          "lost_at": "2026-02-27T14:49:14.120843",
+          "recovered_at": "2026-02-27T14:49:41.520474",
+          "event_id_lost": "EVT-20260227-144914-RIR4",
+          "event_id_recovered": "EVT-20260227-144941-OTYF"
+        },
+        {
+          "lost_at": "2026-02-27T14:49:43.181738",
+          "recovered_at": "2026-02-27T14:49:43.519659",
+          "event_id_lost": "EVT-20260227-144943-KD07",
+          "event_id_recovered": "EVT-20260227-144943-88CQ"
+        },
+        {
+          "lost_at": "2026-02-27T14:49:44.193828",
+          "recovered_at": "2026-02-27T14:49:47.567613",
+          "event_id_lost": "EVT-20260227-144944-PUZB",
+          "event_id_recovered": "EVT-20260227-144947-Y05G"
+        },
+        {
+          "lost_at": "2026-02-27T14:49:48.918830",
+          "recovered_at": "2026-02-27T14:50:04.163448",
+          "event_id_lost": "EVT-20260227-144948-VJY0",
+          "event_id_recovered": "EVT-20260227-145004-R1J8"
+        },
+        {
+          "lost_at": "2026-02-27T14:50:04.465913",
+          "recovered_at": "2026-02-27T14:50:17.658578",
+          "event_id_lost": "EVT-20260227-145004-UMBK",
+          "event_id_recovered": "EVT-20260227-145017-1EZE"
+        },
+        {
+          "lost_at": "2026-02-27T14:50:23.369644",
+          "recovered_at": "2026-02-27T14:50:23.706471",
+          "event_id_lost": "EVT-20260227-145023-DTKE",
+          "event_id_recovered": "EVT-20260227-145023-JUEN"
+        },
+        {
+          "lost_at": "2026-02-27T14:50:24.718018",
+          "recovered_at": "2026-02-27T14:50:25.056568",
+          "event_id_lost": "EVT-20260227-145024-7NUW",
+          "event_id_recovered": "EVT-20260227-145025-LAM5"
+        },
+        {
+          "lost_at": "2026-02-27T14:50:26.068095",
+          "recovered_at": "2026-02-27T14:50:26.405457",
+          "event_id_lost": "EVT-20260227-145026-IR4M",
+          "event_id_recovered": "EVT-20260227-145026-4P3Z"
+        },
+        {
+          "lost_at": "2026-02-27T14:50:46.304635",
+          "recovered_at": "2026-02-27T14:50:47.316724",
+          "event_id_lost": "EVT-20260227-145046-UMNV",
+          "event_id_recovered": "EVT-20260227-145047-6VDM"
+        },
+        {
+          "lost_at": "2026-02-27T14:50:55.152690",
+          "recovered_at": "2026-02-27T14:50:55.826737",
+          "event_id_lost": "EVT-20260227-145055-71IS",
+          "event_id_recovered": "EVT-20260227-145055-40FT"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:06.684858",
+          "recovered_at": "2026-02-27T14:51:07.021537",
+          "event_id_lost": "EVT-20260227-145106-UVFK",
+          "event_id_recovered": "EVT-20260227-145107-W6YS"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:25.247811",
+          "recovered_at": "2026-02-27T14:51:25.584864",
+          "event_id_lost": "EVT-20260227-145125-M5D1",
+          "event_id_recovered": "EVT-20260227-145125-W65N"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:27.614303",
+          "recovered_at": "2026-02-27T14:51:27.951711",
+          "event_id_lost": "EVT-20260227-145127-XYCL",
+          "event_id_recovered": "EVT-20260227-145127-2WRI"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:30.990426",
+          "recovered_at": "2026-02-27T14:51:31.665835",
+          "event_id_lost": "EVT-20260227-145130-26KH",
+          "event_id_recovered": "EVT-20260227-145131-IY3F"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:32.340180",
+          "recovered_at": "2026-02-27T14:51:33.015024",
+          "event_id_lost": "EVT-20260227-145132-2BFF",
+          "event_id_recovered": "EVT-20260227-145133-T52S"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:36.750505",
+          "recovered_at": "2026-02-27T14:51:38.463063",
+          "event_id_lost": "EVT-20260227-145136-2W9I",
+          "event_id_recovered": "EVT-20260227-145138-HFB7"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:39.477095",
+          "recovered_at": "2026-02-27T14:51:39.815605",
+          "event_id_lost": "EVT-20260227-145139-LMEF",
+          "event_id_recovered": "EVT-20260227-145139-3WDP"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:41.172925",
+          "recovered_at": "2026-02-27T14:51:41.511354",
+          "event_id_lost": "EVT-20260227-145141-MWWE",
+          "event_id_recovered": "EVT-20260227-145141-TAZW"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:46.912795",
+          "recovered_at": "2026-02-27T14:51:47.588132",
+          "event_id_lost": "EVT-20260227-145146-7TSD",
+          "event_id_recovered": "EVT-20260227-145147-1T3S"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:48.963637",
+          "recovered_at": "2026-02-27T14:51:49.301665",
+          "event_id_lost": "EVT-20260227-145148-Y2UW",
+          "event_id_recovered": "EVT-20260227-145149-EICJ"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:52.671737",
+          "recovered_at": "2026-02-27T14:51:53.346403",
+          "event_id_lost": "EVT-20260227-145152-8MA4",
+          "event_id_recovered": "EVT-20260227-145153-3ETU"
+        },
+        {
+          "lost_at": "2026-02-27T14:51:58.395396",
+          "recovered_at": "2026-02-27T14:52:03.853168",
+          "event_id_lost": "EVT-20260227-145158-NSRP",
+          "event_id_recovered": "EVT-20260227-145203-50WP"
+        },
+        {
+          "lost_at": "2026-02-27T14:52:05.319159",
+          "recovered_at": "2026-02-27T14:52:05.658829",
+          "event_id_lost": "EVT-20260227-145205-FTOW",
+          "event_id_recovered": "EVT-20260227-145205-4BLI"
+        },
+        {
+          "lost_at": "2026-02-27T14:52:09.793784",
+          "recovered_at": "2026-02-27T14:52:12.831836",
+          "event_id_lost": "EVT-20260227-145209-H4HE",
+          "event_id_recovered": "EVT-20260227-145212-2M1Q"
+        },
+        {
+          "lost_at": "2026-02-27T14:52:13.168533",
+          "recovered_at": "2026-02-27T14:52:13.506076",
+          "event_id_lost": "EVT-20260227-145213-8W8T",
+          "event_id_recovered": "EVT-20260227-145213-XS9Z"
+        },
+        {
+          "lost_at": "2026-02-27T14:52:29.761734",
+          "recovered_at": "2026-02-27T14:52:30.099168",
+          "event_id_lost": "EVT-20260227-145229-TMKS",
+          "event_id_recovered": "EVT-20260227-145230-R31X"
+        },
+        {
+          "lost_at": "2026-02-27T14:52:31.785965",
+          "recovered_at": "2026-02-27T14:52:32.123437",
+          "event_id_lost": "EVT-20260227-145231-2GL7",
+          "event_id_recovered": "EVT-20260227-145232-81EC"
+        },
+        {
+          "lost_at": "2026-02-27T14:52:40.500575",
+          "recovered_at": "2026-02-27T14:52:41.243798",
+          "event_id_lost": "EVT-20260227-145240-SHPF",
+          "event_id_recovered": "EVT-20260227-145241-VAXF"
+        },
+        {
+          "lost_at": "2026-02-27T14:52:42.253765",
+          "recovered_at": "2026-02-27T14:52:43.002023",
+          "event_id_lost": "EVT-20260227-145242-111U",
+          "event_id_recovered": "EVT-20260227-145243-RNW8"
+        },
+        {
+          "lost_at": "2026-02-27T14:52:44.013591",
+          "recovered_at": "2026-02-27T14:52:44.350128",
+          "event_id_lost": "EVT-20260227-145244-9JSG",
+          "event_id_recovered": "EVT-20260227-145244-D4GM"
+        },
+        {
+          "lost_at": "2026-02-27T14:52:44.687155",
+          "recovered_at": "2026-02-27T14:52:51.833667",
+          "event_id_lost": "EVT-20260227-145244-B6F2",
+          "event_id_recovered": "EVT-20260227-145251-R7DM"
+        },
+        {
+          "lost_at": "2026-02-27T14:52:55.205496",
+          "recovered_at": "2026-02-27T14:52:58.239108",
+          "event_id_lost": "EVT-20260227-145255-TCU4",
+          "event_id_recovered": "EVT-20260227-145258-SHL0"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:04.999232",
+          "recovered_at": "2026-02-27T14:53:08.401976",
+          "event_id_lost": "EVT-20260227-145304-968B",
+          "event_id_recovered": "EVT-20260227-145308-8RA6"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:19.886060",
+          "recovered_at": "2026-02-27T14:53:20.223430",
+          "event_id_lost": "EVT-20260227-145319-2WSN",
+          "event_id_recovered": "EVT-20260227-145320-F8IN"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:21.913551",
+          "recovered_at": "2026-02-27T14:53:23.937581",
+          "event_id_lost": "EVT-20260227-145321-H6WV",
+          "event_id_recovered": "EVT-20260227-145323-9L0L"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:25.626400",
+          "recovered_at": "2026-02-27T14:53:26.300378",
+          "event_id_lost": "EVT-20260227-145325-Q9KT",
+          "event_id_recovered": "EVT-20260227-145326-D95W"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:30.704137",
+          "recovered_at": "2026-02-27T14:53:31.379755",
+          "event_id_lost": "EVT-20260227-145330-R2XH",
+          "event_id_recovered": "EVT-20260227-145331-AMUP"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:31.755670",
+          "recovered_at": "2026-02-27T14:53:33.107729",
+          "event_id_lost": "EVT-20260227-145331-SBRK",
+          "event_id_recovered": "EVT-20260227-145333-TOKS"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:34.120118",
+          "recovered_at": "2026-02-27T14:53:34.457040",
+          "event_id_lost": "EVT-20260227-145334-BEE6",
+          "event_id_recovered": "EVT-20260227-145334-TUO2"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:36.144525",
+          "recovered_at": "2026-02-27T14:53:37.182008",
+          "event_id_lost": "EVT-20260227-145336-WDHZ",
+          "event_id_recovered": "EVT-20260227-145337-SLT8"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:37.518624",
+          "recovered_at": "2026-02-27T14:53:47.671825",
+          "event_id_lost": "EVT-20260227-145337-5730",
+          "event_id_recovered": "EVT-20260227-145347-EC51"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:47.976738",
+          "recovered_at": "2026-02-27T14:53:50.338742",
+          "event_id_lost": "EVT-20260227-145347-AUL1",
+          "event_id_recovered": "EVT-20260227-145350-PSXB"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:50.676310",
+          "recovered_at": "2026-02-27T14:53:51.024386",
+          "event_id_lost": "EVT-20260227-145350-JJLD",
+          "event_id_recovered": "EVT-20260227-145351-UFH0"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:54.403539",
+          "recovered_at": "2026-02-27T14:53:57.814527",
+          "event_id_lost": "EVT-20260227-145354-RNE7",
+          "event_id_recovered": "EVT-20260227-145357-PDOC"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:58.118956",
+          "recovered_at": "2026-02-27T14:53:58.793017",
+          "event_id_lost": "EVT-20260227-145358-WJOX",
+          "event_id_recovered": "EVT-20260227-145358-XTFV"
+        },
+        {
+          "lost_at": "2026-02-27T14:53:59.231409",
+          "recovered_at": "2026-02-27T14:54:03.246278",
+          "event_id_lost": "EVT-20260227-145359-L8BD",
+          "event_id_recovered": "EVT-20260227-145403-0S4J"
+        },
+        {
+          "lost_at": "2026-02-27T14:54:03.549320",
+          "recovered_at": "2026-02-27T14:54:07.285686",
+          "event_id_lost": "EVT-20260227-145403-VD42",
+          "event_id_recovered": "EVT-20260227-145407-JIMQ"
+        },
+        {
+          "lost_at": "2026-02-27T14:54:07.622335",
+          "recovered_at": "2026-02-27T14:54:07.959025",
+          "event_id_lost": "EVT-20260227-145407-1UCR",
+          "event_id_recovered": "EVT-20260227-145407-IFFV"
+        },
+        {
+          "lost_at": "2026-02-27T14:54:08.296473",
+          "recovered_at": "2026-02-27T14:55:07.733498",
+          "event_id_lost": "EVT-20260227-145408-PH96",
+          "event_id_recovered": "EVT-20260227-145507-HDWZ"
+        },
+        {
+          "lost_at": "2026-02-27T14:55:08.037420",
+          "recovered_at": "2026-02-27T14:55:09.047880",
+          "event_id_lost": "EVT-20260227-145508-BCWV",
+          "event_id_recovered": "EVT-20260227-145509-7BT9"
+        },
+        {
+          "lost_at": "2026-02-27T14:55:09.384902",
+          "recovered_at": "2026-02-27T14:55:10.398783",
+          "event_id_lost": "EVT-20260227-145509-U9P2",
+          "event_id_recovered": "EVT-20260227-145510-P3LE"
+        },
+        {
+          "lost_at": "2026-02-27T14:55:13.472230",
+          "recovered_at": "2026-02-27T14:55:14.382605",
+          "event_id_lost": "EVT-20260227-145513-FX09",
+          "event_id_recovered": "EVT-20260227-145514-VKYV"
+        },
+        {
+          "lost_at": "2026-02-27T14:55:14.889765",
+          "recovered_at": "2026-02-27T14:55:19.292354",
+          "event_id_lost": "EVT-20260227-145514-L7X0",
+          "event_id_recovered": "EVT-20260227-145519-P1LQ"
+        },
+        {
+          "lost_at": "2026-02-27T14:55:22.691342",
+          "recovered_at": "2026-02-27T14:55:28.124816",
+          "event_id_lost": "EVT-20260227-145522-Q5UH",
+          "event_id_recovered": "EVT-20260227-145528-MBM7"
+        },
+        {
+          "lost_at": "2026-02-27T14:55:32.476749",
+          "recovered_at": "2026-02-27T14:56:04.245264",
+          "event_id_lost": "EVT-20260227-145532-HV3F",
+          "event_id_recovered": "EVT-20260227-145604-FU3H"
+        },
+        {
+          "lost_at": "2026-02-27T14:56:05.222657",
+          "recovered_at": "2026-02-27T14:58:17.679336",
+          "event_id_lost": "EVT-20260227-145605-6OA1",
+          "event_id_recovered": "EVT-20260227-145817-DG4T"
+        },
+        {
+          "lost_at": "2026-02-27T14:58:18.661122",
+          "recovered_at": "2026-02-27T14:58:39.020278",
+          "event_id_lost": "EVT-20260227-145818-7B3A",
+          "event_id_recovered": "EVT-20260227-145839-SMO0"
+        },
+        {
+          "lost_at": "2026-02-27T14:58:39.324291",
+          "recovered_at": "2026-02-27T14:58:44.058232",
+          "event_id_lost": "EVT-20260227-145839-1Q0E",
+          "event_id_recovered": "EVT-20260227-145844-KK4U"
+        },
+        {
+          "lost_at": "2026-02-27T14:58:44.733266",
+          "recovered_at": "2026-02-27T14:58:49.829265",
+          "event_id_lost": "EVT-20260227-145844-L1HW",
+          "event_id_recovered": "EVT-20260227-145849-OPHL"
+        },
+        {
+          "lost_at": "2026-02-27T14:58:52.899605",
+          "recovered_at": "2026-02-27T14:58:56.991865",
+          "event_id_lost": "EVT-20260227-145852-UF4N",
+          "event_id_recovered": "EVT-20260227-145856-7B0W"
+        },
+        {
+          "lost_at": "2026-02-27T14:58:57.633683",
+          "recovered_at": "2026-02-27T14:58:59.320730",
+          "event_id_lost": "EVT-20260227-145857-RSC3",
+          "event_id_recovered": "EVT-20260227-145859-NKIH"
+        },
+        {
+          "lost_at": "2026-02-27T14:58:59.658193",
+          "recovered_at": "2026-02-27T14:59:01.354448",
+          "event_id_lost": "EVT-20260227-145859-NNFA",
+          "event_id_recovered": "EVT-20260227-145901-J1OR"
+        },
+        {
+          "lost_at": "2026-02-27T14:59:02.702735",
+          "recovered_at": "2026-02-27T14:59:03.040738",
+          "event_id_lost": "EVT-20260227-145902-5HD9",
+          "event_id_recovered": "EVT-20260227-145903-A4N0"
+        },
+        {
+          "lost_at": "2026-02-27T14:59:05.066000",
+          "recovered_at": "2026-02-27T14:59:05.402484",
+          "event_id_lost": "EVT-20260227-145905-88MK",
+          "event_id_recovered": "EVT-20260227-145905-2VIC"
+        },
+        {
+          "lost_at": "2026-02-27T14:59:06.805185",
+          "recovered_at": "2026-02-27T14:59:07.816045",
+          "event_id_lost": "EVT-20260227-145906-QUKW",
+          "event_id_recovered": "EVT-20260227-145907-5ES6"
+        },
+        {
+          "lost_at": "2026-02-27T14:59:08.153540",
+          "recovered_at": "2026-02-27T14:59:17.662970",
+          "event_id_lost": "EVT-20260227-145908-B4BB",
+          "event_id_recovered": "EVT-20260227-145917-Y3KS"
+        },
+        {
+          "lost_at": "2026-02-27T14:59:26.062680",
+          "recovered_at": "2026-02-27T14:59:34.889657",
+          "event_id_lost": "EVT-20260227-145926-MG8X",
+          "event_id_recovered": "EVT-20260227-145934-3YX0"
+        },
+        {
+          "lost_at": "2026-02-27T14:59:35.532136",
+          "recovered_at": "2026-02-27T15:00:01.007508",
+          "event_id_lost": "EVT-20260227-145935-3KBD",
+          "event_id_recovered": "EVT-20260227-150001-OG2B"
+        },
+        {
+          "lost_at": "2026-02-27T15:00:01.663208",
+          "recovered_at": "2026-02-27T15:00:04.384776",
+          "event_id_lost": "EVT-20260227-150001-PD6W",
+          "event_id_recovered": "EVT-20260227-150004-QFZE"
+        },
+        {
+          "lost_at": "2026-02-27T15:00:04.721663",
+          "recovered_at": "2026-02-27T15:00:05.058198",
+          "event_id_lost": "EVT-20260227-150004-17DT",
+          "event_id_recovered": "EVT-20260227-150005-FE79"
+        },
+        {
+          "lost_at": "2026-02-27T15:00:05.734531",
+          "recovered_at": "2026-02-27T15:00:07.757879",
+          "event_id_lost": "EVT-20260227-150005-O22W",
+          "event_id_recovered": "EVT-20260227-150007-MIVR"
+        },
+        {
+          "lost_at": "2026-02-27T15:00:08.104570",
+          "recovered_at": "2026-02-27T15:00:59.273212",
+          "event_id_lost": "EVT-20260227-150008-AU42",
+          "event_id_recovered": "EVT-20260227-150059-1MQ6"
+        },
+        {
+          "lost_at": "2026-02-27T15:00:59.576462",
+          "recovered_at": "2026-02-27T15:00:59.912370",
+          "event_id_lost": "EVT-20260227-150059-5BEA",
+          "event_id_recovered": "EVT-20260227-150059-1DYZ"
+        },
+        {
+          "lost_at": "2026-02-27T15:01:09.072530",
+          "recovered_at": "2026-02-27T15:01:10.088474",
+          "event_id_lost": "EVT-20260227-150109-JGYC",
+          "event_id_recovered": "EVT-20260227-150110-RQCJ"
+        },
+        {
+          "lost_at": "2026-02-27T15:01:10.426920",
+          "recovered_at": "2026-02-27T15:01:15.487370",
+          "event_id_lost": "EVT-20260227-150110-ERS7",
+          "event_id_recovered": "EVT-20260227-150115-707T"
+        },
+        {
+          "lost_at": "2026-02-27T15:01:16.847422",
+          "recovered_at": "2026-02-27T15:01:31.074113",
+          "event_id_lost": "EVT-20260227-150116-KD8U",
+          "event_id_recovered": "EVT-20260227-150131-K6CR"
+        },
+        {
+          "lost_at": "2026-02-27T15:01:31.413009",
+          "recovered_at": "2026-02-27T15:01:45.269013",
+          "event_id_lost": "EVT-20260227-150131-GWGT",
+          "event_id_recovered": "EVT-20260227-150145-K1SI"
+        },
+        {
+          "lost_at": "2026-02-27T15:01:48.865324",
+          "recovered_at": "2026-02-27T15:01:49.204700",
+          "event_id_lost": "EVT-20260227-150148-1TUL",
+          "event_id_recovered": "EVT-20260227-150149-048Z"
+        },
+        {
+          "lost_at": "2026-02-27T15:01:50.217075",
+          "recovered_at": "2026-02-27T15:01:51.228249",
+          "event_id_lost": "EVT-20260227-150150-TDAC",
+          "event_id_recovered": "EVT-20260227-150151-5MCX"
+        },
+        {
+          "lost_at": "2026-02-27T15:01:51.566306",
+          "recovered_at": "2026-02-27T15:01:51.913871",
+          "event_id_lost": "EVT-20260227-150151-VEQ7",
+          "event_id_recovered": "EVT-20260227-150151-1HD4"
+        },
+        {
+          "lost_at": "2026-02-27T15:02:47.729169",
+          "recovered_at": "2026-02-27T15:02:48.065480",
+          "event_id_lost": "EVT-20260227-150247-V2ZG",
+          "event_id_recovered": "EVT-20260227-150248-SE91"
+        },
+        {
+          "lost_at": "2026-02-27T15:03:45.337696",
+          "recovered_at": "2026-02-27T15:03:46.350982",
+          "event_id_lost": "EVT-20260227-150345-D2JB",
+          "event_id_recovered": "EVT-20260227-150346-G8I5"
+        },
+        {
+          "lost_at": "2026-02-27T15:03:47.408043",
+          "recovered_at": "2026-02-27T15:03:47.768096",
+          "event_id_lost": "EVT-20260227-150347-QPQ7",
+          "event_id_recovered": "EVT-20260227-150347-XWRS"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:01.062660",
+          "recovered_at": "2026-02-27T15:04:01.399376",
+          "event_id_lost": "EVT-20260227-150401-UIFR",
+          "event_id_recovered": "EVT-20260227-150401-2QYF"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:08.149451",
+          "recovered_at": "2026-02-27T15:04:08.487373",
+          "event_id_lost": "EVT-20260227-150408-NB3N",
+          "event_id_recovered": "EVT-20260227-150408-IOSH"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:09.838199",
+          "recovered_at": "2026-02-27T15:04:10.177372",
+          "event_id_lost": "EVT-20260227-150409-JMFU",
+          "event_id_recovered": "EVT-20260227-150410-EGG2"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:12.199613",
+          "recovered_at": "2026-02-27T15:04:12.539961",
+          "event_id_lost": "EVT-20260227-150412-5ZNN",
+          "event_id_recovered": "EVT-20260227-150412-G4PE"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:17.687746",
+          "recovered_at": "2026-02-27T15:04:20.072838",
+          "event_id_lost": "EVT-20260227-150417-M0JT",
+          "event_id_recovered": "EVT-20260227-150420-AINJ"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:23.453908",
+          "recovered_at": "2026-02-27T15:04:23.791709",
+          "event_id_lost": "EVT-20260227-150423-40W4",
+          "event_id_recovered": "EVT-20260227-150423-9XI5"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:26.606224",
+          "recovered_at": "2026-02-27T15:04:28.298601",
+          "event_id_lost": "EVT-20260227-150426-Z8FN",
+          "event_id_recovered": "EVT-20260227-150428-P3MQ"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:28.635719",
+          "recovered_at": "2026-02-27T15:04:28.974819",
+          "event_id_lost": "EVT-20260227-150428-JWXU",
+          "event_id_recovered": "EVT-20260227-150428-B6PZ"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:29.311003",
+          "recovered_at": "2026-02-27T15:04:29.479426",
+          "event_id_lost": "EVT-20260227-150429-5BH9",
+          "event_id_recovered": "EVT-20260227-150429-2VK3"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:44.580789",
+          "recovered_at": "2026-02-27T15:04:46.010949",
+          "event_id_lost": "EVT-20260227-150444-OLW4",
+          "event_id_recovered": "EVT-20260227-150446-FZCD"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:48.404603",
+          "recovered_at": "2026-02-27T15:04:49.460215",
+          "event_id_lost": "EVT-20260227-150448-V9BM",
+          "event_id_recovered": "EVT-20260227-150449-Y4OH"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:49.797709",
+          "recovered_at": "2026-02-27T15:04:52.187504",
+          "event_id_lost": "EVT-20260227-150449-HMW8",
+          "event_id_recovered": "EVT-20260227-150452-8PR3"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:52.525295",
+          "recovered_at": "2026-02-27T15:04:54.215745",
+          "event_id_lost": "EVT-20260227-150452-2QAZ",
+          "event_id_recovered": "EVT-20260227-150454-TKVU"
+        },
+        {
+          "lost_at": "2026-02-27T15:04:59.643402",
+          "recovered_at": "2026-02-27T15:04:59.980646",
+          "event_id_lost": "EVT-20260227-150459-9C2X",
+          "event_id_recovered": "EVT-20260227-150459-CXUW"
+        },
+        {
+          "lost_at": "2026-02-27T15:05:13.510896",
+          "recovered_at": "2026-02-27T15:35:13.524437",
+          "event_id_lost": "EVT-20260227-150513-SY4T",
+          "event_id_recovered": ""
+        }
+      ],
+      "closed": true
+    }
+  ],
   "daily_totals": {
-    "2026-02-26": 0.0
+    "2026-02-26": 0.0,
+    "2026-02-27": 1351.0147769451141
   },
-  "weekly_total_seconds": 0.0
+  "weekly_total_seconds": 1351.0147769451141
 }

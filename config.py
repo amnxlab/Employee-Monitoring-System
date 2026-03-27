@@ -11,28 +11,33 @@ YOLO_MODEL = "yolov8n.pt"
 PERSON_CONFIDENCE_THRESHOLD = 0.5
 PERSON_CLASS_ID = 0
 YOLO_IMGSZ = 320  # smaller = faster; 320 ~10ms vs 640 ~50ms on CPU
-DETECTION_SKIP_FRAMES = 5  # run YOLO every N frames; tracker interpolates in between
+DETECTION_SKIP_FRAMES = 3  # run YOLO every N frames; lowered from 5 for denser lab environments
 ONNX_THREADS = 2  # threads for ONNX Runtime inference (limits CPU saturation)
 
 # Face Recognition
-FACE_SIMILARITY_THRESHOLD = 0.72  # Higher = stricter matching (raised from 0.65 to reduce false positives)
+FACE_SIMILARITY_THRESHOLD = 0.78  # Raised from 0.72 to reduce false positives in crowded lab
 FACE_DETECTION_SIZE = (640, 640)
 FACE_FRAME_MAX_DIM = 480  # resize long side before DeepFace to save time
+FACE_MIN_SIZE = 40          # minimum face bbox dimension (px); smaller faces are too blurry/distant
+FACE_CONFIRM_PASSES = 2     # require same employee matched on N independent passes before binding
 
 # Tracking
-TRACK_BUFFER = 150  # frames to keep lost tracks alive (~5s at 30fps)
+TRACK_BUFFER = 200  # frames to keep lost tracks alive; raised from 150 for better continuity
 
-# Persistent body tracking -- minimise face re-scanning
-BINDING_PERSIST_SECONDS = 7200     # 2 hours: auto-bind via descriptor without face rec
-SAME_CAM_HANDOFF_WINDOW = 300     # 5 minutes: same-camera re-ID window
-SPATIAL_MATCH_PIXELS = 150         # px radius for position-based matching boost
+# Persistent body tracking -- gap-filler only, NOT a substitute for face recognition
+# Keep these values short: body colour matching causes identity swaps when people stand close.
+# ByteTrack handles continuous following; body descriptors only bridge momentary occlusions.
+BINDING_PERSIST_SECONDS = 15      # 15 seconds: body re-ID only for brief occlusions
+SAME_CAM_HANDOFF_WINDOW = 15      # 15 seconds: same-camera re-ID window
+HANDOFF_WINDOW_SECONDS = 0        # 0 = disable cross-camera body handoff (requires face rec instead)
+SPATIAL_MATCH_PIXELS = 150        # px radius for position-based matching boost
 
 # Track Validation (to prevent binding hands/objects as people)
 MIN_TRACK_AREA = 3000  # minimum pixels^2 for a valid person track (lowered for distance)
 TRACK_ASPECT_RATIO_MIN = 0.2  # width/height min (person is taller than wide)
 TRACK_ASPECT_RATIO_MAX = 1.0  # width/height max (allow sitting/crouching)
 FACE_IN_UPPER_RATIO = 0.7  # face center must be in upper 70% of track bbox
-BINDING_IOU_THRESHOLD = 0.1  # lower threshold - face bbox is smaller than body bbox
+BINDING_IOU_THRESHOLD = 0.25  # raised from 0.1 to require meaningful face-track overlap
 
 # State Machine
 TEMP_LOST_TIMEOUT_SECONDS = 1800  # 30 minutes - if not seen for 30 min, auto clock-out
@@ -46,8 +51,7 @@ FRAME_WIDTH = 1280
 FRAME_HEIGHT = 720
 CAMERA_FPS = 30  # match the capture rate to the main loop (no point reading at 60fps)
 
-# Multi-Camera Handoff
-HANDOFF_WINDOW_SECONDS = 30       # seconds after losing a track to attempt histogram handoff
+# Multi-Camera Handoff (see HANDOFF_WINDOW_SECONDS above in Tracking section)
 HISTOGRAM_MATCH_THRESHOLD = 0.7   # cv2.compareHist correlation threshold
 
 # Audio Alerts
@@ -55,12 +59,21 @@ AUDIO_ENABLED = os.getenv("AUDIO_ENABLED", "true").lower() == "true"
 AUDIO_WARNING_DELAY = 60          # seconds before first spoken warning
 AUDIO_WARNING_INTERVAL = 300      # seconds between repeated warnings
 
+# Notification cooldowns (prevent alert floods in main loop)
+OVERTIME_ALERT_COOLDOWN = 3600    # seconds between repeated overtime alerts per employee
+BREAK_ALERT_COOLDOWN = 3600       # seconds between repeated break-reminder alerts per employee
+UNKNOWN_PERSON_AUDIO_COOLDOWN = 180  # seconds between "look at camera" beeps
+
 # Discord — 3-channel webhook URLs
 DISCORD_WEBHOOK_HERE_GONE = os.getenv("DISCORD_WEBHOOK_HERE_GONE", "")
 DISCORD_WEBHOOK_CLOCK_LOGS = os.getenv("DISCORD_WEBHOOK_CLOCK_LOGS", "")
 DISCORD_WEBHOOK_ADMIN = os.getenv("DISCORD_WEBHOOK_ADMIN", "")
 # Legacy fallback: if only one URL is set, use it for all channels
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
+
+# Discord Bot (for reading the Schedules channel — separate from webhooks)
+DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN", "")
+DISCORD_SCHEDULES_CHANNEL_ID = os.getenv("DISCORD_SCHEDULES_CHANNEL_ID", "")
 
 # Embed colours (Discord uses decimal, not hex)
 DISCORD_COLOR_GREEN = 0x2ECC71    # clock-in, recovered

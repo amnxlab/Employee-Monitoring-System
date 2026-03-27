@@ -39,6 +39,7 @@ from core.snapshot import save_snapshot, cleanup_old_snapshots
 from core.global_id_binder import compute_body_descriptor, compare_descriptors as _cmp_desc
 from attendance import AttendanceStateMachine, AttendanceState, TimerManager, EventLogger
 from integrations import DiscordNotifier
+from integrations.schedule_reader import ScheduleReader, ShiftEntry
 from utils.helpers import format_duration, get_week_number
 
 import sys as _sys
@@ -96,6 +97,14 @@ class _FaceRecWorker:
     Runs face recognition in a background thread.
 
     Accepts (cam_id, frame, tracks) and processes only unbound tracks.
+
+    Identity swaps are prevented by two mechanisms:
+      1. Face size gate: faces smaller than FACE_MIN_SIZE px are discarded
+         (distant/partial faces produce unreliable embeddings).
+      2. Multi-frame confirmation: the same employee must be returned on
+         FACE_CONFIRM_PASSES independent recognition passes before the
+         track is actually bound.  A contradicting match on the same track
+         resets the counter (split-vote rejection).
     """
 
     def __init__(self, face_recognizer: FaceRecognizer, global_binder: GlobalIDBinder):
@@ -108,6 +117,9 @@ class _FaceRecWorker:
         self._running = False
         self._thread: Optional[threading.Thread] = None
         self._pending_request = False
+        # Multi-frame confirmation buffer:
+        # (cam_id, track_id) -> (employee_id, pass_count)
+        self._pending_confirms: Dict[tuple, Tuple[str, int]] = {}
 
     def start(self):
         self._running = True
@@ -152,6 +164,18 @@ class _FaceRecWorker:
             cam_id, frame, all_tracks = item
             try:
                 faces = self._recognizer.detect_faces(frame)
+
+                # ── Face size gate ──────────────────────────────────────
+                # Discard faces whose bounding box is too small — distant or
+                # partially-visible faces produce unreliable embeddings and
+                # are a common source of misidentification in crowded scenes.
+                min_size = getattr(config, "FACE_MIN_SIZE", 40)
+                faces = [
+                    f for f in faces
+                    if (f.bbox[2] - f.bbox[0]) >= min_size
+                    and (f.bbox[3] - f.bbox[1]) >= min_size
+                ]
+
                 matches = self._recognizer.identify_all(faces)
 
                 # Build set of employee IDs already actively bound on ANY
@@ -188,18 +212,58 @@ class _FaceRecWorker:
                             continue
                         claimed_tracks.add(track_id)
 
-                        # Find the Track object for bbox
-                        track_obj = next(
-                            (t for t in all_tracks if t.track_id == track_id), None
-                        )
-                        bbox = track_obj.bbox if track_obj else None
-                        self._binder.bind(
-                            cam_id, track_id, employee_id, frame, bbox
-                        )
-                        logger.info(
-                            f"[FACE-BIND] {employee_id} -> cam {cam_id} "
-                            f"track {track_id}"
-                        )
+                        # ── Multi-frame confirmation buffer ─────────────
+                        # Require FACE_CONFIRM_PASSES consecutive passes
+                        # returning the same employee before committing a
+                        # binding.  This prevents a single bad frame (e.g.
+                        # a face briefly next to a colleague) from causing
+                        # an identity swap.
+                        confirm_passes = getattr(config, "FACE_CONFIRM_PASSES", 2)
+                        key = (cam_id, track_id)
+                        prev_emp, prev_count = self._pending_confirms.get(key, (None, 0))
+
+                        if prev_emp == employee_id:
+                            new_count = prev_count + 1
+                        else:
+                            # Different employee on same track — reset counter
+                            new_count = 1
+                            if prev_emp is not None:
+                                logger.debug(
+                                    f"[FACE-RESET] track {track_id} cam {cam_id}: "
+                                    f"{prev_emp} → {employee_id}, resetting confirm"
+                                )
+
+                        if new_count >= confirm_passes:
+                            # Confirmed — clear buffer and bind
+                            self._pending_confirms.pop(key, None)
+                            # Find the Track object for bbox
+                            track_obj = next(
+                                (t for t in all_tracks if t.track_id == track_id), None
+                            )
+                            bbox = track_obj.bbox if track_obj else None
+                            self._binder.bind(
+                                cam_id, track_id, employee_id, frame, bbox
+                            )
+                            logger.info(
+                                f"[FACE-BIND] {employee_id} -> cam {cam_id} "
+                                f"track {track_id} (confirmed x{new_count})"
+                            )
+                        else:
+                            # Not yet confirmed — store progress
+                            self._pending_confirms[key] = (employee_id, new_count)
+                            logger.debug(
+                                f"[FACE-PENDING] {employee_id} cam {cam_id} "
+                                f"track {track_id}: pass {new_count}/{confirm_passes}"
+                            )
+
+                # Prune pending_confirms for tracks that are no longer active
+                active_ids = {t.track_id for t in all_tracks}
+                stale_keys = [
+                    k for k in list(self._pending_confirms)
+                    if k[0] == cam_id and k[1] not in active_ids
+                ]
+                for k in stale_keys:
+                    self._pending_confirms.pop(k, None)
 
                 with self._lock:
                     self._latest_faces = faces
@@ -246,6 +310,7 @@ class MonitoringSystem:
         self.timer_manager = TimerManager()
         self.event_logger = EventLogger()
         self.discord = DiscordNotifier()
+        self.schedule_reader = ScheduleReader()
 
         self._face_worker: Optional[_FaceRecWorker] = None
 
@@ -270,6 +335,17 @@ class MonitoringSystem:
         self._face_rec_cam_turn: int = 0
         # Exit code: 0 = clean password-confirmed quit, 1 = crash/kill
         self._exit_code = 1
+
+        # ── Notification cooldowns ────────────────────────────────────
+        # Overtime and break-reminder alerts previously fired every main-loop
+        # iteration once the threshold was crossed.  These dicts track the last
+        # time each alert was sent per employee so we only alert once per cooldown
+        # period defined in config.
+        self._overtime_last_alerted: Dict[str, float] = {}
+        self._break_last_alerted: Dict[str, float] = {}
+        # "Look at camera" beep: one global timestamp (not per-employee) because
+        # multiple unbound tracks in the same frame are a single lab event.
+        self._last_look_at_camera: float = 0.0
 
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
@@ -320,6 +396,9 @@ class MonitoringSystem:
         self._init_state_machines()
         self._schedule_reports()
 
+        # Fetch this week's schedule from Discord (fails gracefully if not configured)
+        self.schedule_reader.refresh()
+
         logger.info(
             f"Multi-camera monitoring system ready – "
             f"{self.camera_manager.num_cameras} camera(s)"
@@ -336,6 +415,18 @@ class MonitoringSystem:
                 sm.add_transition_callback(self._on_state_transition)
                 self.state_machines[emp_id] = sm
         logger.info(f"Initialized state machines for {len(self.state_machines)} employees")
+
+    def _get_shift(self, emp_id: str, shift_date) -> Optional[ShiftEntry]:
+        """Return the scheduled shift for an employee on a given date, or None.
+
+        Returns None when:
+          - ScheduleReader is not configured
+          - No schedule was posted for the current week
+          - The employee has no entry for that day (e.g. day off)
+        Callers treat None as "skip schedule comparison".
+        """
+        name = self.face_recognizer.get_employee_name(emp_id)
+        return self.schedule_reader.get_shift(name, shift_date)
 
     def _on_state_transition(self, transition):
         emp_id = transition.employee_id
@@ -355,10 +446,16 @@ class MonitoringSystem:
                     # Update the session's snapshot_path
                     self.event_logger.update_snapshot_path(emp_id, event_id, snap_path)
 
-                start_hour = getattr(config, 'EXPECTED_START_HOUR', 9)
-                start_minute = getattr(config, 'EXPECTED_START_MINUTE', 0)
-                expected_start = dt_time(start_hour, start_minute)
-                is_late = timestamp.time() > expected_start
+                # Use per-employee schedule if available; fall back to fixed
+                # config value only when no schedule has been posted this week.
+                shift = self._get_shift(emp_id, timestamp.date())
+                if shift is not None:
+                    is_late = timestamp.time() > shift.start
+                else:
+                    start_hour = getattr(config, 'EXPECTED_START_HOUR', 9)
+                    start_minute = getattr(config, 'EXPECTED_START_MINUTE', 0)
+                    expected_start = dt_time(start_hour, start_minute)
+                    is_late = timestamp.time() > expected_start
 
                 self.discord.send_clock_in(
                     name, timestamp, snapshot_path=snap_path, is_late=is_late
@@ -394,13 +491,21 @@ class MonitoringSystem:
             self.event_logger.log_clock_out(
                 emp_id, parent, duration_seconds=final_duration, timestamp=timestamp
             )
-            is_early = timestamp.hour < getattr(config, 'EXPECTED_END_HOUR', 17)
+            # Use per-employee schedule if available; fall back to fixed config value.
+            shift = self._get_shift(emp_id, timestamp.date())
+            if shift is not None:
+                is_early = timestamp.time() < shift.end
+            else:
+                is_early = timestamp.hour < getattr(config, 'EXPECTED_END_HOUR', 17)
             self.discord.send_clock_out(
                 name, final_duration, timestamp, is_early=is_early
             )
             logger.info(f"{name} clocked out - session: {format_duration(final_duration)}")
             # Audio: farewell
             self.audio_alert.play_clock_out(name, is_early=is_early)
+            # Reset per-session alert cooldowns so they fire fresh next session
+            self._overtime_last_alerted.pop(emp_id, None)
+            self._break_last_alerted.pop(emp_id, None)
 
     def _take_clock_in_snapshot(self, emp_id: str, event_id: str = None) -> Optional[str]:
         """Capture a snapshot from the camera where the employee was detected."""
@@ -471,6 +576,9 @@ class MonitoringSystem:
             self._last_week = current_week
             self._last_year = current_year
             self._weekly_report_sent = False  # allow next week's report
+            # Fetch new week's schedule; if not posted yet this returns False
+            # and schedule comparison stays disabled until refresh succeeds.
+            self.schedule_reader.refresh()
 
     # ── main loop ──────────────────────────────────────────────────────
 
@@ -606,16 +714,24 @@ class MonitoringSystem:
                         emp_id, name, is_visible, sm.is_working
                     )
 
-                    # Audio: overtime and break reminders
+                    # Audio: overtime and break reminders (cooldown-gated)
                     if sm.is_working and is_visible:
                         session_secs = self.timer_manager.get_current_session(
                             emp_id, current_time
                         )
+                        overtime_cooldown = getattr(config, 'OVERTIME_ALERT_COOLDOWN', 3600)
+                        break_cooldown = getattr(config, 'BREAK_ALERT_COOLDOWN', 3600)
                         if session_secs > getattr(config, 'DAILY_OVERTIME_THRESHOLD', 28800):
-                            self.audio_alert.play_overtime(name)
-                            self.discord.send_overtime_alert(name, session_secs / 3600)
+                            last_ot = self._overtime_last_alerted.get(emp_id, 0.0)
+                            if current_time - last_ot >= overtime_cooldown:
+                                self._overtime_last_alerted[emp_id] = current_time
+                                self.audio_alert.play_overtime(name)
+                                self.discord.send_overtime_alert(name, session_secs / 3600)
                         elif session_secs > 3 * 3600:  # 3 hours nonstop
-                            self.audio_alert.play_break_reminder(name)
+                            last_br = self._break_last_alerted.get(emp_id, 0.0)
+                            if current_time - last_br >= break_cooldown:
+                                self._break_last_alerted[emp_id] = current_time
+                                self.audio_alert.play_break_reminder(name)
 
                 # Unknown person: 5-minute grace period with first+last snapshot
                 # Cross-camera dedup: if the same physical person is visible on
@@ -662,8 +778,13 @@ class MonitoringSystem:
                                     f"matches existing {_matched_existing}"
                                 )
                             else:
-                                # Genuinely new unknown person
-                                self.audio_alert.play_look_at_camera()
+                                # Genuinely new unknown person — play audio at most once
+                                # per UNKNOWN_PERSON_AUDIO_COOLDOWN seconds to avoid
+                                # repeated beeping in a busy lab.
+                                audio_cooldown = getattr(config, 'UNKNOWN_PERSON_AUDIO_COOLDOWN', 180)
+                                if current_time - self._last_look_at_camera >= audio_cooldown:
+                                    self._last_look_at_camera = current_time
+                                    self.audio_alert.play_look_at_camera()
 
                                 # Capture first snapshot for potential security alert later
                                 first_snap = None

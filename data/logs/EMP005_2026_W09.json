@@ -9,7 +9,7 @@
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T14:45:09.125782",
-      "clock_out": null,
+      "clock_out": "2026-02-26T14:53:36.056403",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "EVT-20260226-144509-J6IU.jpg",
@@ -45,14 +45,14 @@
           "event_id_recovered": "EVT-20260226-145336-PCUI"
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-145514-BCZP",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T14:55:14.266623",
-      "clock_out": null,
+      "clock_out": "2026-02-26T14:58:34.410606",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "EVT-20260226-145514-8RPA.jpg",
@@ -100,14 +100,14 @@
           "event_id_recovered": "EVT-20260226-145834-ERAR"
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-150048-6CB1",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T15:00:48.775313",
-      "clock_out": null,
+      "clock_out": "2026-02-26T15:05:08.587271",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "EVT-20260226-150048-8LJQ.jpg",
@@ -192,19 +192,19 @@
         },
         {
           "lost_at": "2026-02-26T15:05:08.587271",
-          "recovered_at": null,
+          "recovered_at": "2026-02-26T15:05:08.587271",
           "event_id_lost": "EVT-20260226-150508-9HZI",
           "event_id_recovered": ""
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-150819-JMK4",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T15:08:19.199555",
-      "clock_out": null,
+      "clock_out": "2026-02-26T15:08:41.290253",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "EVT-20260226-150819-W6IK.jpg",
@@ -216,14 +216,14 @@
           "event_id_recovered": "EVT-20260226-150841-XBCB"
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-151247-IZSF",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T15:12:47.231299",
-      "clock_out": null,
+      "clock_out": "2026-02-26T15:20:18.179996",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "EVT-20260226-151247-Y589.jpg",
@@ -241,14 +241,14 @@
           "event_id_recovered": "EVT-20260226-152018-7QDX"
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-152629-0N7A",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T15:26:29.462432",
-      "clock_out": null,
+      "clock_out": "2026-02-26T15:29:48.883991",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "EVT-20260226-152629-7CFX.jpg",
@@ -284,14 +284,14 @@
           "event_id_recovered": "EVT-20260226-152948-7DVZ"
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-154615-BB9P",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T15:46:15.383015",
-      "clock_out": null,
+      "clock_out": "2026-02-26T15:48:00.860314",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "EVT-20260226-154615-XVCI.jpg",
@@ -321,14 +321,14 @@
           "event_id_recovered": "EVT-20260226-154800-TH13"
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-155743-HT06",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T15:57:43.307120",
-      "clock_out": null,
+      "clock_out": "2026-02-26T15:59:27.985173",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "EVT-20260226-155743-453D.jpg",
@@ -340,7 +340,7 @@
           "event_id_recovered": "EVT-20260226-155927-KNI6"
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-161857-XWPY",
@@ -372,7 +372,7 @@
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T17:19:25.464168",
-      "clock_out": null,
+      "clock_out": "2026-02-26T17:24:25.385316",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260226-171925-MR5I.jpg",
@@ -420,14 +420,14 @@
           "event_id_recovered": "EVT-20260226-172425-O77P"
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-172930-PE6Z",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T17:29:30.819429",
-      "clock_out": null,
+      "clock_out": "2026-02-26T17:36:14.506956",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260226-172930-FF3L.jpg",
@@ -536,19 +536,19 @@
         },
         {
           "lost_at": "2026-02-26T17:36:14.506956",
-          "recovered_at": null,
+          "recovered_at": "2026-02-26T17:36:14.506956",
           "event_id_lost": "EVT-20260226-173614-L0E3",
           "event_id_recovered": ""
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-175355-AZJE",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T17:53:55.045546",
-      "clock_out": null,
+      "clock_out": "2026-02-26T17:54:39.485107",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260226-175355-MBM0.jpg",
@@ -603,19 +603,19 @@
         },
         {
           "lost_at": "2026-02-26T17:54:39.485107",
-          "recovered_at": null,
+          "recovered_at": "2026-02-26T17:54:39.485107",
           "event_id_lost": "EVT-20260226-175439-NQLK",
           "event_id_recovered": ""
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-181615-WBWQ",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T18:16:15.428067",
-      "clock_out": null,
+      "clock_out": "2026-02-26T18:17:40.011606",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260226-181615-2VZX.jpg",
@@ -627,38 +627,38 @@
           "event_id_recovered": "EVT-20260226-181740-GKOT"
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-182220-IJJL",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T18:22:20.520391",
-      "clock_out": null,
+      "clock_out": "2026-02-26T18:22:20.520391",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260226-182220-QGJU.jpg",
       "interruptions": [],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-184345-6A75",
       "employee_id": "EMP005",
       "employee_name": "The Boss",
       "clock_in": "2026-02-26T18:43:45.353192",
-      "clock_out": null,
+      "clock_out": "2026-02-26T18:43:45.353192",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260226-184345-OZKW.jpg",
       "interruptions": [],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-190657-Q4KU",
       "employee_id": "EMP005",
       "employee_name": "King in the North",
       "clock_in": "2026-02-26T19:06:57.500482",
-      "clock_out": null,
+      "clock_out": "2026-02-26T19:08:01.205027",
       "duration_seconds": 0.0,
       "date_str": "2026-02-26",
       "snapshot_path": "c:\\Users\\Amin-PC\\Desktop\\Montiring system\\data\\snapshots\\EVT-20260226-190657-JP3G.jpg",
@@ -683,12 +683,12 @@
         },
         {
           "lost_at": "2026-02-26T19:08:01.205027",
-          "recovered_at": null,
+          "recovered_at": "2026-02-26T19:08:01.205027",
           "event_id_lost": "EVT-20260226-190801-FJT6",
           "event_id_recovered": ""
         }
       ],
-      "closed": false
+      "closed": true
     },
     {
       "event_id": "EVT-20260226-211525-I6FT",
